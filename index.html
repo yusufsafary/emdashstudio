@@ -884,6 +884,12 @@ footer{
     <span class="sub">AGENTIC DEVELOPMENT ENVIRONMENT</span>
   </div>
   <div id="intro-key">PRESS ANY KEY TO BEGIN</div>
+  <div id="intro-x" style="margin:18px 0 0;font-size:0.85rem;letter-spacing:0.12em;opacity:0.7;">
+    <a href="https://x.com/emdashstudio_" target="_blank" rel="noopener"
+       style="color:var(--gr);text-decoration:none;border-bottom:1px solid var(--gr-dim);padding-bottom:1px;">
+      𝕏 &nbsp;@emdashstudio_
+    </a>
+  </div>
   <div id="intro-bar">
     <span><span class="signal-dot" style="display:inline-block;margin-right:6px;"></span>SIGNAL: ACTIVE</span>
     <span>v1.0.0 / BUILD 840K</span>
@@ -1407,23 +1413,27 @@ function toggleFaq(el) {
    TICKER
 ────────────────────────────────────────────────── */
 const tickItems = [
-  ['840K+', 'DOWNLOADS'],
-  ['25+', 'AGENTS SUPPORTED'],
-  ['100%', 'OPEN SOURCE'],
-  ['v1', 'NOW AVAILABLE'],
-  ['macOS', 'WINDOWS · LINUX'],
-  ['ZERO', 'SETUP REQUIRED'],
-  ['∞', 'PARALLEL WORKTREES'],
-  ['MIT', 'LICENSE'],
-  ['YC', 'BACKED'],
-  ['FREE', 'FOREVER'],
+  ['840K+', 'DOWNLOADS', null],
+  ['25+', 'AGENTS SUPPORTED', null],
+  ['100%', 'OPEN SOURCE', null],
+  ['v1', 'NOW AVAILABLE', null],
+  ['macOS', 'WINDOWS · LINUX', null],
+  ['ZERO', 'SETUP REQUIRED', null],
+  ['∞', 'PARALLEL WORKTREES', null],
+  ['MIT', 'LICENSE', null],
+  ['YC', 'BACKED', null],
+  ['FREE', 'FOREVER', null],
+  ['𝕏', '@EMDASHSTUDIO_', 'https://x.com/emdashstudio_'],
 ];
 const ticker = document.getElementById('ticker');
 let tickHtml = '';
 // Double for seamless loop
 for (let pass = 0; pass < 2; pass++) {
-  tickItems.forEach(([num, label]) => {
-    tickHtml += `<div class="tick-item"><span class="dot"></span><span class="num">${num}</span>${label}</div>`;
+  tickItems.forEach(([num, label, url]) => {
+    const labelHtml = url
+      ? `<a href="${url}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;border-bottom:1px solid var(--gr-dim);">${label}</a>`
+      : label;
+    tickHtml += `<div class="tick-item"><span class="dot"></span><span class="num">${num}</span>${labelHtml}</div>`;
   });
 }
 ticker.innerHTML = tickHtml;
