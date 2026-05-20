@@ -1,1196 +1,1109 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-  <title>Agentflow — Open-source Agentic Dev Environment</title>
-  <meta name="description" content="Your coding agent dashboard. Code purely by orchestrating agents. Run multiple in parallel, each isolated in their own Git worktree." />
-  <meta property="og:title" content="Agentflow" />
-  <meta property="og:description" content="Open-source Agentic Development Environment" />
-  <meta property="og:type" content="website" />
-  <meta name="theme-color" content="#060a0b" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+  <title>EMDASH STUDIO — Agentic Dev Environment</title>
+  <meta name="description" content="Open-source agentic development environment. Orchestrate coding agents from a unified terminal dashboard."/>
+  <meta property="og:title" content="EMDASH STUDIO"/>
+  <meta property="og:description" content="Open-source Agentic Development Environment"/>
+  <meta property="og:type" content="website"/>
+  <meta name="theme-color" content="#020504"/>
   <style>
-    /* ── RESET & TOKENS ─────────────────────────────────────────── */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --bg:        #060a0b;
-      --bg2:       #0b1214;
-      --bg3:       #111a1d;
-      --surface:   #141e21;
-      --border:    #1e2e32;
-      --border2:   #263b40;
-      --accent:    #1fd4a8;
-      --accent2:   #0fa87e;
-      --accent-dim:#1fd4a840;
-      --accent-glow:#1fd4a822;
-      --amber:     #e8c97a;
-      --amber-dim: #e8c97a40;
-      --text:      #d6e8e4;
-      --text2:     #8fa8a4;
-      --text3:     #4d6b66;
-      --red:       #e05757;
-      --red-dim:   #e0575730;
-      --scanline:  #00000030;
-      --radius:    6px;
-      --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Courier New', monospace;
-      --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-    }
-
-    html { scroll-behavior: smooth; }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--font-sans);
-      font-size: 15px;
-      line-height: 1.6;
-      overflow-x: hidden;
-      position: relative;
-    }
-
-    /* CRT scanlines overlay */
-    body::before {
-      content: '';
-      pointer-events: none;
-      position: fixed;
-      inset: 0;
-      z-index: 9999;
-      background: repeating-linear-gradient(
-        0deg,
-        transparent 0px,
-        transparent 2px,
-        var(--scanline) 2px,
-        var(--scanline) 3px
-      );
-      opacity: 0.18;
-    }
-
-    /* Vignette */
-    body::after {
-      content: '';
-      pointer-events: none;
-      position: fixed;
-      inset: 0;
-      z-index: 9998;
-      background: radial-gradient(ellipse at center, transparent 55%, #000000aa 100%);
-    }
-
-    /* ── TYPOGRAPHY ─────────────────────────────────────────────── */
-    h1, h2, h3, h4 { font-family: var(--font-sans); font-weight: 600; letter-spacing: -0.03em; line-height: 1.15; }
-    h1 { font-size: clamp(2.2rem, 6vw, 4rem); }
-    h2 { font-size: clamp(1.5rem, 3.5vw, 2.5rem); }
-    h3 { font-size: 1.1rem; font-weight: 500; }
-
-    .mono { font-family: var(--font-mono); }
-
-    a { color: var(--accent); text-decoration: none; }
-    a:hover { text-decoration: underline; }
-
-    /* ── LAYOUT ─────────────────────────────────────────────────── */
-    .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
-    .section { padding: 96px 0; }
-    .section--sm { padding: 60px 0; }
-
-    /* ── NAV ─────────────────────────────────────────────────────── */
-    nav {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      z-index: 100;
-      background: linear-gradient(180deg, var(--bg) 0%, #060a0bcc 100%);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--border);
-    }
-
-    .nav-inner {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 0 24px;
-      height: 60px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-    }
-
-    .nav-logo {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-family: var(--font-mono);
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--text);
-      letter-spacing: 0.05em;
-      text-decoration: none;
-      flex-shrink: 0;
-    }
-
-    .nav-logo-mark {
-      width: 28px;
-      height: 28px;
-      background: var(--accent);
-      border-radius: 4px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 13px;
-      color: #000;
-      font-weight: 800;
-      box-shadow: 0 0 12px var(--accent-dim);
-    }
-
-    .nav-links {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      list-style: none;
-    }
-
-    .nav-links a {
-      color: var(--text2);
-      font-size: 13px;
-      font-weight: 500;
-      padding: 6px 12px;
-      border-radius: var(--radius);
-      transition: color 0.15s, background 0.15s;
-      text-decoration: none;
-    }
-
-    .nav-links a:hover { color: var(--text); background: var(--bg3); }
-
-    .nav-actions {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-shrink: 0;
-    }
-
-    .badge-count {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      color: var(--text3);
-      padding: 2px 8px;
-      border: 1px solid var(--border);
-      border-radius: 20px;
-    }
-
-    .nav-hamburger {
-      display: none;
-      flex-direction: column;
-      gap: 4px;
-      cursor: pointer;
-      padding: 6px;
-      border: none;
-      background: none;
-    }
-
-    .nav-hamburger span {
-      display: block;
-      width: 20px;
-      height: 2px;
-      background: var(--text2);
-      border-radius: 2px;
-      transition: transform 0.2s, opacity 0.2s;
-    }
-
-    .mobile-menu {
-      display: none;
-      position: fixed;
-      top: 60px; left: 0; right: 0;
-      background: var(--bg2);
-      border-bottom: 1px solid var(--border);
-      z-index: 99;
-      padding: 16px 24px;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .mobile-menu.open { display: flex; }
-    .mobile-menu a { color: var(--text2); font-size: 15px; padding: 12px 0; border-bottom: 1px solid var(--border); text-decoration: none; }
-    .mobile-menu a:last-child { border-bottom: none; }
-
-    /* ── BUTTONS ─────────────────────────────────────────────────── */
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 9px 18px;
-      border-radius: var(--radius);
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.15s;
-      text-decoration: none;
-      border: none;
-      font-family: inherit;
-      white-space: nowrap;
-    }
-
-    .btn-primary {
-      background: var(--accent);
-      color: #000;
-      box-shadow: 0 0 20px var(--accent-dim);
-    }
-
-    .btn-primary:hover {
-      background: #2fffc8;
-      box-shadow: 0 0 28px var(--accent-dim), 0 0 48px var(--accent-glow);
-      transform: translateY(-1px);
-      text-decoration: none;
-    }
-
-    .btn-secondary {
-      background: transparent;
-      color: var(--text2);
-      border: 1px solid var(--border2);
-    }
-
-    .btn-secondary:hover {
-      color: var(--text);
-      border-color: var(--border2);
-      background: var(--bg3);
-      text-decoration: none;
-    }
-
-    .btn-lg { padding: 12px 24px; font-size: 14px; }
-
-    /* ── HERO ────────────────────────────────────────────────────── */
-    #hero {
-      padding: 160px 0 80px;
-      text-align: center;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .hero-grid-bg {
-      position: absolute;
-      inset: 0;
-      background-image:
-        linear-gradient(var(--border) 1px, transparent 1px),
-        linear-gradient(90deg, var(--border) 1px, transparent 1px);
-      background-size: 48px 48px;
-      opacity: 0.25;
-      mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 0%, transparent 100%);
-    }
-
-    .hero-glow {
-      position: absolute;
-      top: -20%;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 700px;
-      height: 400px;
-      background: radial-gradient(ellipse, var(--accent-glow) 0%, transparent 70%);
-      pointer-events: none;
-    }
-
-    .hero-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 5px 12px;
-      border: 1px solid var(--border2);
-      border-radius: 20px;
-      font-size: 12px;
-      font-family: var(--font-mono);
-      color: var(--accent);
-      background: var(--accent-glow);
-      margin-bottom: 28px;
-    }
-
-    .hero-badge-dot {
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: var(--accent);
-      box-shadow: 0 0 6px var(--accent);
-      animation: blink 1.4s ease-in-out infinite;
-    }
-
-    @keyframes blink {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.2; }
-    }
-
-    .hero-title {
-      margin-bottom: 20px;
-      position: relative;
-    }
-
-    .hero-title span.accent { color: var(--accent); }
-
-    .hero-sub {
-      font-size: clamp(1rem, 2.5vw, 1.2rem);
-      color: var(--text2);
-      max-width: 560px;
-      margin: 0 auto 40px;
-      line-height: 1.7;
-    }
-
-    .hero-actions {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-
-    .hero-stat {
-      margin-top: 60px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      font-size: 12px;
-      font-family: var(--font-mono);
-      color: var(--text3);
-    }
-
-    /* ── TERMINAL DEMO ───────────────────────────────────────────── */
-    .terminal-window {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      overflow: hidden;
-      font-family: var(--font-mono);
-      font-size: 13px;
-      line-height: 1.65;
-      box-shadow: 0 32px 80px #00000060, 0 0 0 1px var(--border);
-    }
-
-    .terminal-toolbar {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 12px 16px;
-      background: var(--bg3);
-      border-bottom: 1px solid var(--border);
-    }
-
-    .terminal-dot {
-      width: 11px; height: 11px;
-      border-radius: 50%;
-    }
-
-    .td-red { background: #ff5f57; }
-    .td-yellow { background: #ffbd2e; }
-    .td-green { background: #28c840; }
-
-    .terminal-title {
-      margin-left: 8px;
-      font-size: 12px;
-      color: var(--text3);
-      flex: 1;
-      text-align: center;
-    }
-
-    .terminal-body { padding: 20px 20px; }
-    .t-dim { color: var(--text3); }
-    .t-accent { color: var(--accent); }
-    .t-amber { color: var(--amber); }
-    .t-red { color: var(--red); }
-    .t-text { color: var(--text2); }
-    .t-line { display: block; }
-
-    .cursor-blink {
-      display: inline-block;
-      width: 8px; height: 14px;
-      background: var(--accent);
-      vertical-align: -2px;
-      animation: cursor-blink 1s step-end infinite;
-    }
-
-    @keyframes cursor-blink {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0; }
-    }
-
-    /* ── SECTION LABEL ───────────────────────────────────────────── */
-    .section-label {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--accent);
-      margin-bottom: 16px;
-    }
-
-    /* ── FEATURES GRID ───────────────────────────────────────────── */
-    .features-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 1px;
-      background: var(--border);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      overflow: hidden;
-      margin-top: 60px;
-    }
-
-    .feature-card {
-      background: var(--bg2);
-      padding: 32px;
-      transition: background 0.2s;
-      position: relative;
-    }
-
-    .feature-card:hover { background: var(--bg3); }
-
-    .feature-icon {
-      width: 40px; height: 40px;
-      background: var(--accent-glow);
-      border: 1px solid var(--border2);
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 16px;
-    }
-
-    .feature-icon svg { width: 18px; height: 18px; }
-
-    .feature-card h3 {
-      margin-bottom: 8px;
-      font-size: 15px;
-      font-weight: 600;
-      color: var(--text);
-    }
-
-    .feature-card p {
-      font-size: 13.5px;
-      color: var(--text2);
-      line-height: 1.65;
-    }
-
-    .feature-tag {
-      display: inline-flex;
-      align-items: center;
-      margin-top: 14px;
-      padding: 3px 9px;
-      background: var(--accent-glow);
-      border: 1px solid var(--border2);
-      border-radius: 4px;
-      font-family: var(--font-mono);
-      font-size: 11px;
-      color: var(--accent);
-    }
-
-    /* ── SHOWCASE ────────────────────────────────────────────────── */
-    #showcase {
-      background: var(--bg2);
-      border-top: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
-    }
-
-    .showcase-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 48px;
-      align-items: center;
-    }
-
-    .showcase-text h2 { margin-bottom: 16px; }
-    .showcase-text p { color: var(--text2); margin-bottom: 24px; line-height: 1.75; }
-
-    .showcase-list {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .showcase-list li {
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-      font-size: 14px;
-      color: var(--text2);
-    }
-
-    .check-icon {
-      flex-shrink: 0;
-      margin-top: 2px;
-      width: 16px; height: 16px;
-      color: var(--accent);
-    }
-
-    /* ── WORKTREE VISUAL ─────────────────────────────────────────── */
-    .worktree-diagram {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 24px;
-      font-family: var(--font-mono);
-      font-size: 12px;
-      line-height: 1.8;
-    }
-
-    .wt-branch {
-      color: var(--amber);
-    }
-
-    .wt-agent {
-      color: var(--accent);
-    }
-
-    .wt-status-ok { color: var(--accent); }
-    .wt-status-run { color: var(--amber); }
-    .wt-status-err { color: var(--red); }
-
-    /* ── AGENTS GRID ─────────────────────────────────────────────── */
-    .agents-section { text-align: center; }
-
-    .agents-section h2 { margin-bottom: 12px; }
-    .agents-section .section-sub {
-      color: var(--text2);
-      max-width: 480px;
-      margin: 0 auto 48px;
-      font-size: 14px;
-    }
-
-    .agents-scroll {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      justify-content: center;
-      max-width: 720px;
-      margin: 0 auto;
-    }
-
-    .agent-chip {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 14px;
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      font-size: 13px;
-      color: var(--text2);
-      transition: border-color 0.15s, color 0.15s;
-    }
-
-    .agent-chip:hover { border-color: var(--border2); color: var(--text); }
-    .agent-chip-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
-
-    /* ── HOW IT WORKS ────────────────────────────────────────────── */
-    #how {
-      background: var(--bg);
-      position: relative;
-    }
-
-    .steps-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 2px;
-      background: var(--border);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      overflow: hidden;
-      margin-top: 48px;
-    }
-
-    .step-card {
-      background: var(--bg2);
-      padding: 32px 24px;
-    }
-
-    .step-num {
-      font-family: var(--font-mono);
-      font-size: 12px;
-      color: var(--text3);
-      margin-bottom: 16px;
-      letter-spacing: 0.1em;
-    }
-
-    .step-card h3 { margin-bottom: 8px; font-size: 15px; }
-    .step-card p { font-size: 13px; color: var(--text2); line-height: 1.65; }
-
-    /* ── PROVISION BLOCK ─────────────────────────────────────────── */
-    #infra { background: var(--bg2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
-
-    .infra-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 64px;
-      align-items: center;
-    }
-
-    /* ── INTEGRATIONS ────────────────────────────────────────────── */
-    .integrations-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 12px;
-      margin-top: 48px;
-    }
-
-    .integration-card {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      transition: border-color 0.15s;
-    }
-
-    .integration-card:hover { border-color: var(--border2); }
-
-    .int-icon {
-      width: 32px; height: 32px;
-      background: var(--bg3);
-      border-radius: 6px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 14px;
-    }
-
-    .int-name { font-size: 13px; font-weight: 500; color: var(--text); }
-    .int-type { font-size: 11px; font-family: var(--font-mono); color: var(--text3); }
-
-    /* ── FAQ ─────────────────────────────────────────────────────── */
-    #faq { background: var(--bg); }
-    .faq-grid { max-width: 720px; margin: 48px auto 0; display: flex; flex-direction: column; gap: 2px; }
-
-    .faq-item {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      overflow: hidden;
-    }
-
-    .faq-question {
-      padding: 18px 20px;
-      cursor: pointer;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 14px;
-      font-weight: 500;
-      color: var(--text);
-      gap: 12px;
-    }
-
-    .faq-question:hover { background: var(--bg3); }
-
-    .faq-toggle {
-      flex-shrink: 0;
-      width: 20px; height: 20px;
-      border: 1px solid var(--border2);
-      border-radius: 4px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 14px;
-      color: var(--text3);
-      transition: transform 0.2s;
-    }
-
-    .faq-item.open .faq-toggle { transform: rotate(45deg); color: var(--accent); }
-    .faq-answer {
-      max-height: 0;
-      overflow: hidden;
-      transition: max-height 0.3s ease, padding 0.3s;
-      font-size: 13.5px;
-      color: var(--text2);
-      line-height: 1.75;
-    }
-
-    .faq-item.open .faq-answer {
-      max-height: 300px;
-      padding: 0 20px 18px;
-    }
-
-    /* ── CTA ─────────────────────────────────────────────────────── */
-    #cta {
-      text-align: center;
-      background: var(--bg);
-      padding: 100px 0 120px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .cta-glow {
-      position: absolute;
-      bottom: -100px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 600px;
-      height: 300px;
-      background: radial-gradient(ellipse, var(--accent-glow) 0%, transparent 70%);
-      pointer-events: none;
-    }
-
-    #cta h2 { margin-bottom: 16px; }
-    #cta p { color: var(--text2); max-width: 440px; margin: 0 auto 36px; }
-
-    /* ── FOOTER ──────────────────────────────────────────────────── */
-    footer {
-      background: var(--bg2);
-      border-top: 1px solid var(--border);
-      padding: 48px 0;
-    }
-
-    .footer-inner {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 0 24px;
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 32px;
-      align-items: start;
-    }
-
-    .footer-brand p {
-      color: var(--text3);
-      font-size: 13px;
-      margin-top: 10px;
-      max-width: 300px;
-    }
-
-    .footer-links {
-      display: flex;
-      gap: 48px;
-    }
-
-    .footer-col h4 {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--text3);
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      margin-bottom: 14px;
-    }
-
-    .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
-    .footer-col a { font-size: 13px; color: var(--text2); text-decoration: none; transition: color 0.15s; }
-    .footer-col a:hover { color: var(--text); }
-
-    .footer-bottom {
-      max-width: 1100px;
-      margin: 32px auto 0;
-      padding: 24px 24px 0;
-      border-top: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 12px;
-      color: var(--text3);
-      font-family: var(--font-mono);
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
-    /* ── DIVIDER ─────────────────────────────────────────────────── */
-    .divider {
-      height: 1px;
-      background: var(--border);
-      margin: 0;
-    }
-
-    /* ── STATS ROW ───────────────────────────────────────────────── */
-    .stats-row {
-      display: flex;
-      gap: 0;
-      background: var(--border);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      overflow: hidden;
-      margin-top: 64px;
-    }
-
-    .stat-item {
-      flex: 1;
-      background: var(--bg2);
-      padding: 28px 24px;
-      text-align: center;
-      border-right: 1px solid var(--border);
-    }
-
-    .stat-item:last-child { border-right: none; }
-    .stat-num { font-size: 2rem; font-weight: 700; color: var(--accent); font-family: var(--font-mono); }
-    .stat-label { font-size: 12px; color: var(--text3); margin-top: 4px; font-family: var(--font-mono); letter-spacing: 0.05em; }
-
-    /* ── TESTIMONIALS ────────────────────────────────────────────── */
-    .testimonials-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 16px;
-      margin-top: 48px;
-    }
-
-    .testimonial-card {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 24px;
-    }
-
-    .testimonial-card p {
-      font-size: 14px;
-      color: var(--text2);
-      line-height: 1.75;
-      margin-bottom: 16px;
-    }
-
-    .testimonial-author {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .author-avatar {
-      width: 32px; height: 32px;
-      border-radius: 50%;
-      background: var(--bg3);
-      border: 1px solid var(--border2);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 12px;
-      font-family: var(--font-mono);
-      color: var(--accent);
-      flex-shrink: 0;
-    }
-
-    .author-name { font-size: 13px; font-weight: 500; color: var(--text); }
-    .author-role { font-size: 11px; color: var(--text3); font-family: var(--font-mono); }
-
-    /* ── RESPONSIVE ──────────────────────────────────────────────── */
-    @media (max-width: 768px) {
-      .nav-links { display: none; }
-      .nav-hamburger { display: flex; }
-      .showcase-grid { grid-template-columns: 1fr; gap: 32px; }
-      .infra-grid { grid-template-columns: 1fr; gap: 32px; }
-      .footer-inner { grid-template-columns: 1fr; }
-      .footer-links { flex-wrap: wrap; gap: 32px; }
-      .stats-row { flex-direction: column; }
-      .stat-item { border-right: none; border-bottom: 1px solid var(--border); }
-      .stat-item:last-child { border-bottom: none; }
-      #hero { padding: 120px 0 60px; }
-      .section { padding: 64px 0; }
-      .hero-glow { width: 100%; }
-    }
-
-    @media (max-width: 480px) {
-      .features-grid { grid-template-columns: 1fr; }
-      .steps-grid { grid-template-columns: 1fr; }
-    }
-
-    /* ── ANIMATIONS ──────────────────────────────────────────────── */
-    @keyframes fadeup {
-      from { opacity: 0; transform: translateY(16px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    .fadeup { animation: fadeup 0.6s ease both; }
-    .fadeup-1 { animation-delay: 0.05s; }
-    .fadeup-2 { animation-delay: 0.12s; }
-    .fadeup-3 { animation-delay: 0.20s; }
-    .fadeup-4 { animation-delay: 0.28s; }
-
-    /* Typing animation */
-    .typing-line {
-      overflow: hidden;
-      white-space: nowrap;
-      animation: typing 1.8s steps(40, end) both;
-    }
-
-    .typing-line-2 { animation-delay: 1.8s; animation-duration: 1.2s; }
-    .typing-line-3 { animation-delay: 3.0s; animation-duration: 0.9s; }
-
-    @keyframes typing {
-      from { width: 0; }
-      to   { width: 100%; }
-    }
-
-    .provision-block { position: relative; }
-    .provision-block::before {
-      content: '';
-      position: absolute;
-      left: 0; top: 0; bottom: 0;
-      width: 3px;
-      background: linear-gradient(180deg, var(--accent) 0%, transparent 100%);
-      border-radius: 2px;
-    }
-
-    .glow-text { text-shadow: 0 0 20px var(--accent-dim); }
-
-    .muted-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 10px;
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      font-size: 11px;
-      font-family: var(--font-mono);
-      color: var(--text3);
-      background: var(--bg3);
-    }
-
+/* ──────────────────────────────────────────────────
+   FONTS & RESET
+────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=VT323&family=Share+Tech+Mono&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:       #020504;
+  --bg2:      #050d09;
+  --bg3:      #081410;
+  --surface:  #0c1f18;
+  --border:   #0f2d22;
+  --border2:  #1a4433;
+  --ph:       #d4f0e2;      /* phosphor — warm green-white */
+  --ph-dim:   #4e8c6e;
+  --ph-glow:  rgba(212,240,226,0.18);
+  --ph-trace: rgba(212,240,226,0.05);
+  --gr:       #2dffb0;      /* neon green accent */
+  --gr-glow:  rgba(45,255,176,0.25);
+  --gr-trace: rgba(45,255,176,0.07);
+  --am:       #f5c842;      /* amber */
+  --am-glow:  rgba(245,200,66,0.25);
+  --rd:       #ff4d4d;      /* red alert */
+  --rd-glow:  rgba(255,77,77,0.25);
+  --cy:       #00e5ff;      /* cyan */
+  --cy-glow:  rgba(0,229,255,0.20);
+  --font-term: 'VT323', 'Share Tech Mono', 'Courier New', monospace;
+  --font-mono: 'Share Tech Mono', 'Courier New', monospace;
+  --font-body: 'Space Grotesk', system-ui, sans-serif;
+  --scan: rgba(0,0,0,0.18);
+  --r: 4px;
+}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--bg);
+  color:var(--ph);
+  font-family:var(--font-body);
+  font-size:15px;
+  line-height:1.6;
+  overflow-x:hidden;
+  cursor:default;
+}
+
+/* ──────────────────────────────────────────────────
+   CRT EFFECTS
+────────────────────────────────────────────────── */
+#crt-layer{
+  pointer-events:none;
+  position:fixed;inset:0;
+  z-index:9999;
+  background:repeating-linear-gradient(
+    0deg,
+    transparent 0px,transparent 2px,
+    var(--scan) 2px,var(--scan) 3px
+  );
+  animation:scanroll 8s linear infinite;
+}
+@keyframes scanroll{
+  0%{background-position:0 0;}
+  100%{background-position:0 4px;}
+}
+#vignette{
+  pointer-events:none;
+  position:fixed;inset:0;
+  z-index:9998;
+  background:radial-gradient(ellipse at 50% 40%,transparent 45%,rgba(0,0,0,0.72) 100%);
+}
+body{animation:flicker 5s infinite;}
+@keyframes flicker{
+  0%,80%,100%{opacity:1;}
+  81%{opacity:.94;}82%{opacity:1;}
+  83%{opacity:.88;}84%{opacity:1;}
+  85%{opacity:.92;}86%{opacity:1;}
+}
+
+/* ──────────────────────────────────────────────────
+   INTRO SCREEN
+────────────────────────────────────────────────── */
+#intro{
+  position:fixed;inset:0;
+  z-index:5000;
+  background:var(--bg);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:20px;
+  cursor:pointer;
+}
+#intro-logo{
+  font-family:var(--font-term);
+  font-size:clamp(28px,7vw,72px);
+  color:var(--gr);
+  text-shadow:0 0 20px var(--gr-glow),0 0 40px var(--gr-trace);
+  letter-spacing:.15em;
+  animation:pulseglow 2s ease-in-out infinite;
+  text-align:center;
+  line-height:1.1;
+}
+#intro-logo .sub{
+  display:block;
+  font-size:clamp(12px,2vw,18px);
+  color:var(--ph-dim);
+  letter-spacing:.35em;
+  text-shadow:none;
+  margin-top:6px;
+}
+@keyframes pulseglow{
+  0%,100%{text-shadow:0 0 10px var(--gr-glow),0 0 25px var(--gr-trace);}
+  50%{text-shadow:0 0 30px var(--gr-glow),0 0 60px var(--gr-trace),0 0 80px rgba(45,255,176,0.12);}
+}
+#intro-key{
+  font-family:var(--font-mono);
+  font-size:clamp(12px,2vw,16px);
+  color:var(--ph-dim);
+  letter-spacing:.25em;
+  animation:blink-slow 1.6s step-end infinite;
+}
+@keyframes blink-slow{
+  0%,100%{opacity:1;}50%{opacity:0.2;}
+}
+#intro-bar{
+  font-family:var(--font-mono);
+  font-size:11px;
+  color:var(--gr);
+  letter-spacing:.1em;
+  width:min(320px,80vw);
+  display:flex;
+  justify-content:space-between;
+  position:fixed;
+  bottom:32px;
+  left:50%;
+  transform:translateX(-50%);
+}
+#intro.fade-out{
+  animation:intro-fade .6s ease forwards;
+}
+@keyframes intro-fade{
+  to{opacity:0;pointer-events:none;}
+}
+
+/* Glitch transition overlay */
+#glitch-overlay{
+  position:fixed;inset:0;
+  z-index:4999;
+  pointer-events:none;
+  display:none;
+}
+#glitch-overlay.active{
+  display:block;
+  animation:glitch-flash .6s steps(10,end) forwards;
+}
+@keyframes glitch-flash{
+  0%{background:#020504;}
+  10%{background:#051a0f;}
+  20%{background:#000;}
+  30%{background:#0a1f14;}
+  40%{background:#020504;}
+  50%{background:#040f08;}
+  60%{background:#020504;}
+  100%{background:transparent;}
+}
+
+/* ──────────────────────────────────────────────────
+   MAIN CONTENT (hidden until intro done)
+────────────────────────────────────────────────── */
+#main{opacity:0;transition:opacity .8s ease;}
+#main.visible{opacity:1;}
+
+/* ──────────────────────────────────────────────────
+   STATUS BAR (fixed top)
+────────────────────────────────────────────────── */
+#status-bar{
+  position:fixed;top:0;left:0;right:0;
+  z-index:100;
+  height:44px;
+  background:linear-gradient(180deg,var(--bg) 0%,rgba(2,5,4,0.92) 100%);
+  backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 24px;
+  font-family:var(--font-mono);
+  font-size:12px;
+}
+.sb-left,.sb-right{display:flex;align-items:center;gap:20px;}
+.sb-logo{
+  display:flex;align-items:center;gap:10px;
+  color:var(--ph);
+  text-decoration:none;
+  font-size:14px;
+  letter-spacing:.12em;
+}
+.sb-logo-icon{
+  width:22px;height:22px;
+  position:relative;
+  flex-shrink:0;
+}
+.sb-logo-icon svg{width:22px;height:22px;}
+.sb-sig{color:var(--ph-dim);}
+.sb-sig span{color:var(--gr);}
+.sb-links{display:flex;gap:0;}
+.sb-links a{
+  color:var(--ph-dim);
+  padding:4px 12px;
+  text-decoration:none;
+  letter-spacing:.08em;
+  font-size:12px;
+  transition:color .15s;
+  border-radius:2px;
+}
+.sb-links a:hover{color:var(--gr);}
+.sb-dl{
+  display:flex;align-items:center;gap:6px;
+  background:var(--gr);
+  color:#000;
+  font-family:var(--font-mono);
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:.1em;
+  padding:5px 14px;
+  border-radius:3px;
+  text-decoration:none;
+  box-shadow:0 0 16px var(--gr-glow);
+  transition:box-shadow .2s,transform .15s;
+}
+.sb-dl:hover{box-shadow:0 0 28px var(--gr-glow);transform:translateY(-1px);text-decoration:none;color:#000;}
+.signal-dot{
+  width:7px;height:7px;border-radius:50%;
+  background:var(--gr);
+  box-shadow:0 0 6px var(--gr);
+  animation:blink-slow 1.4s ease-in-out infinite;
+  display:inline-block;
+}
+.sb-hamburger{
+  display:none;
+  flex-direction:column;gap:4px;
+  background:none;border:none;cursor:pointer;padding:6px;
+}
+.sb-hamburger span{display:block;width:18px;height:2px;background:var(--ph-dim);border-radius:2px;}
+#mobile-nav{
+  display:none;position:fixed;top:44px;left:0;right:0;
+  background:var(--bg2);border-bottom:1px solid var(--border);
+  z-index:99;padding:12px 20px;flex-direction:column;gap:2px;
+}
+#mobile-nav.open{display:flex;}
+#mobile-nav a{color:var(--ph-dim);font-family:var(--font-mono);font-size:14px;padding:10px 0;border-bottom:1px solid var(--border);text-decoration:none;letter-spacing:.08em;}
+#mobile-nav a:last-child{border-bottom:none;}
+
+/* ──────────────────────────────────────────────────
+   HERO
+────────────────────────────────────────────────── */
+#hero{
+  padding:100px 0 60px;
+  position:relative;
+  overflow:hidden;
+}
+.hero-grid{
+  position:absolute;inset:0;
+  background-image:
+    linear-gradient(var(--border) 1px,transparent 1px),
+    linear-gradient(90deg,var(--border) 1px,transparent 1px);
+  background-size:40px 40px;
+  opacity:.35;
+  mask-image:radial-gradient(ellipse 100% 70% at 50% 0%,black 0%,transparent 100%);
+}
+.hero-glow{
+  position:absolute;
+  top:-10%;left:50%;transform:translateX(-50%);
+  width:min(800px,120vw);height:400px;
+  background:radial-gradient(ellipse,rgba(45,255,176,0.08) 0%,transparent 65%);
+  pointer-events:none;
+}
+.hero-inner{
+  position:relative;
+  max-width:1060px;
+  margin:0 auto;
+  padding:0 24px;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:48px;
+  align-items:center;
+}
+.hero-text{}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  font-family:var(--font-mono);font-size:11px;
+  color:var(--gr);letter-spacing:.15em;
+  padding:4px 12px;
+  border:1px solid var(--border2);
+  border-radius:2px;
+  background:rgba(45,255,176,0.04);
+  margin-bottom:20px;
+}
+.hero-title{
+  font-family:var(--font-term);
+  font-size:clamp(2.4rem,5.5vw,4.2rem);
+  line-height:1.05;
+  letter-spacing:.04em;
+  color:var(--ph);
+  text-shadow:0 0 20px var(--ph-glow);
+  margin-bottom:20px;
+}
+.hero-title .hl{
+  color:var(--gr);
+  text-shadow:0 0 18px var(--gr-glow),0 0 40px var(--gr-trace);
+}
+.hero-sub{
+  font-size:14px;
+  color:var(--ph-dim);
+  line-height:1.75;
+  max-width:420px;
+  margin-bottom:32px;
+  font-family:var(--font-mono);
+  letter-spacing:.03em;
+}
+.hero-actions{display:flex;gap:10px;flex-wrap:wrap;}
+.btn-gr{
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--gr);color:#000;
+  font-family:var(--font-mono);font-size:13px;font-weight:700;
+  letter-spacing:.1em;padding:10px 20px;border-radius:3px;
+  box-shadow:0 0 18px var(--gr-glow);
+  text-decoration:none;border:none;cursor:pointer;
+  transition:all .15s;
+}
+.btn-gr:hover{box-shadow:0 0 32px var(--gr-glow);transform:translateY(-1px);color:#000;text-decoration:none;}
+.btn-outline{
+  display:inline-flex;align-items:center;gap:8px;
+  background:transparent;
+  color:var(--ph-dim);
+  font-family:var(--font-mono);font-size:13px;
+  letter-spacing:.08em;padding:9px 18px;
+  border:1px solid var(--border2);border-radius:3px;
+  text-decoration:none;cursor:pointer;
+  transition:all .15s;
+}
+.btn-outline:hover{color:var(--ph);border-color:var(--ph-dim);text-decoration:none;}
+
+/* ──────────────────────────────────────────────────
+   LIVE AGENT TERMINAL (hero right side)
+────────────────────────────────────────────────── */
+.agent-terminal{
+  background:var(--bg2);
+  border:1px solid var(--border2);
+  border-radius:6px;
+  overflow:hidden;
+  box-shadow:0 0 60px rgba(45,255,176,0.06),0 32px 80px rgba(0,0,0,0.6);
+  font-family:var(--font-mono);
+  font-size:12px;
+}
+.at-bar{
+  display:flex;align-items:center;gap:8px;
+  padding:10px 14px;
+  background:var(--bg3);
+  border-bottom:1px solid var(--border);
+}
+.at-dot{width:10px;height:10px;border-radius:50%;}
+.at-dot.r{background:#ff5f57;} .at-dot.y{background:#ffbd2e;} .at-dot.g{background:#28c840;}
+.at-title{margin-left:4px;color:var(--ph-dim);font-size:11px;flex:1;text-align:center;letter-spacing:.1em;}
+.at-status{font-size:10px;color:var(--gr);letter-spacing:.1em;}
+.at-status::before{content:'● ';animation:blink-slow 1s step-end infinite;}
+.at-body{padding:16px 16px 20px;min-height:340px;max-height:380px;overflow:hidden;position:relative;}
+#terminal-output{
+  line-height:1.7;
+}
+.tl{display:flex;gap:8px;}
+.tl-time{color:var(--ph-dim);opacity:.5;flex-shrink:0;min-width:50px;}
+.tl-tag{flex-shrink:0;padding:0 6px;border-radius:2px;font-size:10px;letter-spacing:.08em;}
+.tl-tag.ok{background:rgba(45,255,176,0.12);color:var(--gr);}
+.tl-tag.run{background:rgba(245,200,66,0.12);color:var(--am);}
+.tl-tag.err{background:rgba(255,77,77,0.12);color:var(--rd);}
+.tl-tag.inf{background:rgba(212,240,226,0.06);color:var(--ph-dim);}
+.tl-msg{color:var(--ph);flex:1;}
+.tl-msg .dim{color:var(--ph-dim);}
+.tl-msg .gr{color:var(--gr);}
+.tl-msg .am{color:var(--am);}
+.tl-msg .rd{color:var(--rd);}
+.tl-msg .cy{color:var(--cy);}
+.at-cursor-line{
+  display:flex;align-items:center;gap:6px;
+  color:var(--ph-dim);
+  margin-top:6px;
+}
+.at-blinkcursor{
+  width:8px;height:14px;
+  background:var(--gr);
+  display:inline-block;
+  vertical-align:-2px;
+  box-shadow:0 0 8px var(--gr);
+  animation:cur-blink 1s step-end infinite;
+}
+@keyframes cur-blink{0%,100%{opacity:1;}50%{opacity:0;}}
+
+/* ──────────────────────────────────────────────────
+   TICKER TAPE
+────────────────────────────────────────────────── */
+#ticker-wrap{
+  overflow:hidden;
+  border-top:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+  background:var(--bg2);
+  padding:10px 0;
+}
+#ticker{
+  display:flex;
+  gap:0;
+  animation:ticker-scroll 30s linear infinite;
+  width:max-content;
+}
+.tick-item{
+  display:flex;align-items:center;gap:10px;
+  font-family:var(--font-mono);font-size:11px;
+  color:var(--ph-dim);letter-spacing:.12em;
+  padding:0 32px;
+  border-right:1px solid var(--border);
+  white-space:nowrap;
+}
+.tick-item .dot{width:5px;height:5px;border-radius:50%;background:var(--gr);flex-shrink:0;}
+.tick-item .num{color:var(--gr);}
+@keyframes ticker-scroll{
+  from{transform:translateX(0);}
+  to{transform:translateX(-50%);}
+}
+
+/* ──────────────────────────────────────────────────
+   SECTION BASE
+────────────────────────────────────────────────── */
+.sec{padding:88px 0;}
+.sec-alt{background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+.container{max-width:1060px;margin:0 auto;padding:0 24px;}
+.sec-label{
+  font-family:var(--font-mono);font-size:11px;
+  color:var(--gr);letter-spacing:.2em;
+  text-transform:uppercase;margin-bottom:12px;
+}
+.sec-title{
+  font-family:var(--font-term);
+  font-size:clamp(1.8rem,3.5vw,2.8rem);
+  color:var(--ph);
+  text-shadow:0 0 14px var(--ph-glow);
+  letter-spacing:.06em;
+  line-height:1.1;
+  margin-bottom:14px;
+}
+.sec-sub{
+  font-family:var(--font-mono);font-size:13px;
+  color:var(--ph-dim);line-height:1.8;max-width:520px;
+  letter-spacing:.03em;
+}
+
+/* ──────────────────────────────────────────────────
+   FEATURES
+────────────────────────────────────────────────── */
+.feat-grid{
+  margin-top:52px;
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:1px;
+  background:var(--border);
+  border:1px solid var(--border);
+  border-radius:6px;
+  overflow:hidden;
+}
+.feat-card{
+  background:var(--bg2);
+  padding:28px 24px;
+  transition:background .2s;
+  position:relative;
+  overflow:hidden;
+}
+.feat-card::before{
+  content:'';
+  position:absolute;top:0;left:0;right:0;
+  height:2px;
+  background:linear-gradient(90deg,transparent,var(--gr),transparent);
+  opacity:0;
+  transition:opacity .3s;
+}
+.feat-card:hover{background:var(--bg3);}
+.feat-card:hover::before{opacity:1;}
+.feat-icon{
+  width:36px;height:36px;
+  border:1px solid var(--border2);
+  border-radius:4px;
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:14px;
+  background:var(--bg3);
+  position:relative;
+}
+.feat-icon svg{width:16px;height:16px;}
+.feat-tag{
+  font-family:var(--font-mono);font-size:10px;
+  color:var(--gr);letter-spacing:.15em;
+  margin-bottom:10px;
+  opacity:.7;
+}
+.feat-card h3{
+  font-family:var(--font-mono);font-size:14px;
+  color:var(--ph);font-weight:400;
+  letter-spacing:.06em;margin-bottom:8px;
+}
+.feat-card p{font-size:12.5px;color:var(--ph-dim);line-height:1.7;font-family:var(--font-mono);}
+
+/* ──────────────────────────────────────────────────
+   SHOWCASE — PARALLEL AGENTS
+────────────────────────────────────────────────── */
+.showcase-grid{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:52px;align-items:center;
+  margin-top:52px;
+}
+.showcase-list{list-style:none;display:flex;flex-direction:column;gap:10px;margin-top:20px;}
+.showcase-list li{
+  display:flex;align-items:flex-start;gap:10px;
+  font-family:var(--font-mono);font-size:12.5px;color:var(--ph-dim);
+}
+.check{color:var(--gr);flex-shrink:0;margin-top:1px;}
+.wt-terminal{
+  background:var(--bg);
+  border:1px solid var(--border2);
+  border-radius:6px;
+  font-family:var(--font-mono);font-size:12px;
+  line-height:1.8;
+  padding:0;
+  overflow:hidden;
+}
+.wt-bar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 14px;
+  background:var(--bg3);border-bottom:1px solid var(--border);
+  font-size:11px;color:var(--ph-dim);letter-spacing:.08em;
+}
+.wt-body{padding:16px 18px;}
+.wt-row{margin-bottom:4px;}
+.wt-br{color:var(--am);}
+.wt-agent{color:var(--ph-dim);}
+.wt-ok{color:var(--gr);}
+.wt-run{color:var(--am);}
+.wt-st{color:var(--rd);}
+.wt-dim{color:var(--ph-dim);opacity:.5;}
+
+/* ──────────────────────────────────────────────────
+   AGENTS GRID
+────────────────────────────────────────────────── */
+.agents-wrap{
+  display:flex;flex-wrap:wrap;gap:8px;
+  margin-top:40px;justify-content:center;
+  max-width:700px;margin-left:auto;margin-right:auto;
+}
+.agent-chip{
+  display:flex;align-items:center;gap:7px;
+  padding:7px 14px;
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:3px;
+  font-family:var(--font-mono);font-size:12px;color:var(--ph-dim);
+  transition:border-color .15s,color .15s;
+  letter-spacing:.05em;
+}
+.agent-chip:hover{border-color:var(--border2);color:var(--ph);}
+.agent-chip-dot{width:6px;height:6px;border-radius:50%;background:var(--gr);flex-shrink:0;}
+
+/* ──────────────────────────────────────────────────
+   HOW IT WORKS
+────────────────────────────────────────────────── */
+.steps-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:1px;background:var(--border);
+  border:1px solid var(--border);border-radius:6px;overflow:hidden;
+  margin-top:52px;
+}
+.step-card{background:var(--bg2);padding:28px 20px;}
+.step-num{
+  font-family:var(--font-mono);font-size:11px;
+  color:var(--ph-dim);letter-spacing:.15em;margin-bottom:14px;
+  opacity:.5;
+}
+.step-card h3{font-family:var(--font-mono);font-size:14px;color:var(--ph);font-weight:400;letter-spacing:.06em;margin-bottom:8px;}
+.step-card p{font-family:var(--font-mono);font-size:12px;color:var(--ph-dim);line-height:1.7;}
+.step-arrow{display:none;}
+
+/* ──────────────────────────────────────────────────
+   INFRA / PROVISION
+────────────────────────────────────────────────── */
+.infra-grid{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:52px;align-items:center;
+  margin-top:0;
+}
+.provision-term{
+  background:var(--bg);
+  border:1px solid var(--border2);
+  border-radius:6px;overflow:hidden;
+  font-family:var(--font-mono);font-size:12px;
+  line-height:1.75;
+}
+.pv-bar{
+  display:flex;align-items:center;gap:6px;
+  padding:9px 14px;
+  background:var(--bg3);border-bottom:1px solid var(--border);
+  font-size:11px;color:var(--ph-dim);
+}
+.pv-dot{width:9px;height:9px;border-radius:50%;}
+.pv-dot.r{background:#ff5f57;}.pv-dot.y{background:#ffbd2e;}.pv-dot.g{background:#28c840;}
+.pv-title{flex:1;text-align:center;letter-spacing:.1em;font-size:11px;}
+.pv-body{padding:14px 16px;}
+.pv-line{display:block;margin-bottom:1px;}
+.dim{color:var(--ph-dim);opacity:.55;}
+.gr2{color:var(--gr);}
+.am2{color:var(--am);}
+.cy2{color:var(--cy);}
+
+/* ──────────────────────────────────────────────────
+   INTEGRATIONS
+────────────────────────────────────────────────── */
+.int-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+  gap:8px;
+  margin-top:40px;
+}
+.int-card{
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:4px;
+  padding:18px 16px;
+  transition:border-color .15s;
+  display:flex;align-items:center;gap:12px;
+}
+.int-card:hover{border-color:var(--border2);}
+.int-ico{
+  width:28px;height:28px;
+  background:var(--bg3);border-radius:3px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;flex-shrink:0;
+}
+.int-name{font-family:var(--font-mono);font-size:12px;color:var(--ph);letter-spacing:.05em;}
+.int-type{font-family:var(--font-mono);font-size:10px;color:var(--ph-dim);letter-spacing:.08em;}
+
+/* ──────────────────────────────────────────────────
+   TESTIMONIALS
+────────────────────────────────────────────────── */
+.testi-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:12px;margin-top:40px;
+}
+.testi-card{
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:4px;
+  padding:22px;
+}
+.testi-card p{font-family:var(--font-mono);font-size:12.5px;color:var(--ph-dim);line-height:1.75;margin-bottom:16px;letter-spacing:.03em;}
+.testi-author{display:flex;align-items:center;gap:10px;}
+.testi-av{
+  width:30px;height:30px;border-radius:3px;
+  background:var(--bg3);border:1px solid var(--border2);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-mono);font-size:11px;color:var(--gr);
+  flex-shrink:0;
+}
+.testi-name{font-family:var(--font-mono);font-size:12px;color:var(--ph);letter-spacing:.06em;}
+.testi-role{font-family:var(--font-mono);font-size:10px;color:var(--ph-dim);letter-spacing:.08em;}
+
+/* ──────────────────────────────────────────────────
+   FAQ
+────────────────────────────────────────────────── */
+.faq-wrap{max-width:700px;margin:48px auto 0;display:flex;flex-direction:column;gap:2px;}
+.faq-item{
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:4px;overflow:hidden;
+}
+.faq-q{
+  padding:16px 18px;cursor:pointer;
+  display:flex;justify-content:space-between;align-items:center;gap:12px;
+  font-family:var(--font-mono);font-size:13px;color:var(--ph);
+  letter-spacing:.04em;transition:background .15s;
+}
+.faq-q:hover{background:var(--bg3);}
+.faq-toggle{
+  flex-shrink:0;width:18px;height:18px;
+  border:1px solid var(--border2);border-radius:2px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;color:var(--ph-dim);
+  transition:transform .2s,color .15s;
+}
+.faq-item.open .faq-toggle{transform:rotate(45deg);color:var(--gr);}
+.faq-a{
+  max-height:0;overflow:hidden;
+  transition:max-height .32s ease,padding .3s;
+  font-family:var(--font-mono);font-size:12.5px;color:var(--ph-dim);line-height:1.75;
+  letter-spacing:.03em;
+}
+.faq-item.open .faq-a{max-height:250px;padding:0 18px 16px;}
+
+/* ──────────────────────────────────────────────────
+   CTA SECTION
+────────────────────────────────────────────────── */
+#cta{
+  padding:100px 0 120px;
+  text-align:center;
+  position:relative;
+  overflow:hidden;
+}
+.cta-glow-bot{
+  position:absolute;bottom:-60px;left:50%;transform:translateX(-50%);
+  width:min(600px,100vw);height:280px;
+  background:radial-gradient(ellipse,rgba(45,255,176,0.08) 0%,transparent 70%);
+  pointer-events:none;
+}
+#cta h2{
+  font-family:var(--font-term);
+  font-size:clamp(2rem,4.5vw,3.5rem);
+  color:var(--ph);
+  text-shadow:0 0 16px var(--ph-glow);
+  letter-spacing:.06em;
+  margin-bottom:16px;
+}
+#cta p{font-family:var(--font-mono);font-size:13px;color:var(--ph-dim);max-width:420px;margin:0 auto 36px;line-height:1.75;}
+.dl-group{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+.dl-note{
+  margin-top:20px;
+  font-family:var(--font-mono);font-size:11px;color:var(--ph-dim);
+  opacity:.5;letter-spacing:.12em;
+}
+
+/* ──────────────────────────────────────────────────
+   FOOTER
+────────────────────────────────────────────────── */
+footer{
+  background:var(--bg2);
+  border-top:1px solid var(--border);
+  padding:44px 0 20px;
+}
+.foot-grid{
+  display:grid;grid-template-columns:1.2fr 1fr 1fr 1fr;
+  gap:32px;margin-bottom:40px;
+}
+.foot-brand-logo{
+  display:flex;align-items:center;gap:10px;
+  font-family:var(--font-term);font-size:20px;
+  color:var(--ph);letter-spacing:.12em;
+  margin-bottom:12px;text-decoration:none;
+}
+.foot-brand p{font-family:var(--font-mono);font-size:12px;color:var(--ph-dim);line-height:1.75;max-width:240px;letter-spacing:.04em;}
+.foot-col h4{
+  font-family:var(--font-mono);font-size:11px;
+  color:var(--ph-dim);letter-spacing:.2em;
+  text-transform:uppercase;margin-bottom:14px;opacity:.5;
+}
+.foot-col ul{list-style:none;display:flex;flex-direction:column;gap:8px;}
+.foot-col a{font-family:var(--font-mono);font-size:12px;color:var(--ph-dim);text-decoration:none;letter-spacing:.05em;transition:color .15s;}
+.foot-col a:hover{color:var(--gr);}
+.foot-bottom{
+  border-top:1px solid var(--border);
+  padding-top:20px;
+  display:flex;justify-content:space-between;align-items:center;
+  font-family:var(--font-mono);font-size:11px;color:var(--ph-dim);opacity:.4;
+  letter-spacing:.1em;flex-wrap:wrap;gap:8px;
+}
+
+/* ──────────────────────────────────────────────────
+   STAT ROW
+────────────────────────────────────────────────── */
+.stat-row{
+  display:flex;gap:1px;
+  background:var(--border);
+  border:1px solid var(--border);border-radius:6px;overflow:hidden;
+  margin-top:60px;
+}
+.stat-item{
+  flex:1;background:var(--bg2);padding:24px;text-align:center;
+  border-right:1px solid var(--border);
+}
+.stat-item:last-child{border-right:none;}
+.stat-num{font-family:var(--font-term);font-size:2.4rem;color:var(--gr);text-shadow:0 0 14px var(--gr-glow);letter-spacing:.05em;}
+.stat-lbl{font-family:var(--font-mono);font-size:11px;color:var(--ph-dim);letter-spacing:.15em;margin-top:4px;}
+
+/* ──────────────────────────────────────────────────
+   INTERACTIVE DEMOS / GLITCH
+────────────────────────────────────────────────── */
+.glitch-title{
+  position:relative;display:inline-block;
+}
+.glitch-title::before,.glitch-title::after{
+  content:attr(data-text);
+  position:absolute;top:0;left:0;
+  clip-path:polygon(0 0,100% 0,100% 33%,0 33%);
+  opacity:0;
+}
+.glitch-title::before{
+  color:var(--cy);
+  animation:glitch-top 4s infinite 1s;
+  transform:translateX(-2px);
+}
+.glitch-title::after{
+  clip-path:polygon(0 66%,100% 66%,100% 100%,0 100%);
+  color:var(--am);
+  animation:glitch-bot 4s infinite 1.2s;
+  transform:translateX(2px);
+}
+@keyframes glitch-top{
+  0%,96%,100%{opacity:0;}
+  97%,99%{opacity:.7;}
+}
+@keyframes glitch-bot{
+  0%,94%,100%{opacity:0;}
+  95%,99%{opacity:.7;}
+}
+
+/* ──────────────────────────────────────────────────
+   RESPONSIVE
+────────────────────────────────────────────────── */
+@media(max-width:900px){
+  .hero-inner{grid-template-columns:1fr;}
+  .agent-terminal{display:none;}
+  .showcase-grid{grid-template-columns:1fr;}
+  .infra-grid{grid-template-columns:1fr;}
+  .feat-grid{grid-template-columns:1fr 1fr;}
+  .steps-grid{grid-template-columns:1fr 1fr;}
+  .testi-grid{grid-template-columns:1fr;}
+  .foot-grid{grid-template-columns:1fr 1fr;}
+  .stat-row{flex-direction:column;}
+  .stat-item{border-right:none;border-bottom:1px solid var(--border);}
+  .stat-item:last-child{border-bottom:none;}
+  .sb-links{display:none;}
+  .sb-hamburger{display:flex;}
+}
+@media(max-width:560px){
+  .feat-grid{grid-template-columns:1fr;}
+  .steps-grid{grid-template-columns:1fr;}
+  .foot-grid{grid-template-columns:1fr;}
+  .int-grid{grid-template-columns:1fr 1fr;}
+  #hero{padding:80px 0 40px;}
+  .sec{padding:60px 0;}
+  .hero-title{font-size:2rem;}
+}
+
+/* ──────────────────────────────────────────────────
+   SCROLL ANIMATIONS
+────────────────────────────────────────────────── */
+.reveal{opacity:0;transform:translateY(16px);transition:opacity .6s ease,transform .6s ease;}
+.reveal.in{opacity:1;transform:translateY(0);}
   </style>
 </head>
 <body>
 
-<!-- NAV -->
-<nav>
-  <div class="nav-inner">
-    <a href="#" class="nav-logo">
-      <div class="nav-logo-mark">A</div>
-      AGENTFLOW
+<!-- ── CRT OVERLAYS ── -->
+<div id="crt-layer"></div>
+<div id="vignette"></div>
+
+<!-- ── INTRO SCREEN ── -->
+<div id="intro" tabindex="0" role="button" aria-label="Press any key to enter">
+  <div id="intro-logo">
+    EM<span style="color:var(--ph);">DASH</span>
+    <span style="color:var(--gr);">STUDIO</span>
+    <span class="sub">AGENTIC DEVELOPMENT ENVIRONMENT</span>
+  </div>
+  <div id="intro-key">PRESS ANY KEY TO BEGIN</div>
+  <div id="intro-bar">
+    <span><span class="signal-dot" style="display:inline-block;margin-right:6px;"></span>SIGNAL: ACTIVE</span>
+    <span>v1.0.0 / BUILD 840K</span>
+  </div>
+</div>
+<div id="glitch-overlay"></div>
+
+<!-- ── MAIN ── -->
+<div id="main">
+
+<!-- ── STATUS BAR / NAV ── -->
+<nav id="status-bar">
+  <div class="sb-left">
+    <a href="#" class="sb-logo">
+      <div class="sb-logo-icon">
+        <svg viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="1" y="1" width="20" height="20" rx="3" stroke="#2dffb0" stroke-width="1.2"/>
+          <path d="M6 11h10M11 6v10" stroke="#2dffb0" stroke-width="1.5" stroke-linecap="round"/>
+          <circle cx="11" cy="11" r="2" fill="#2dffb0" opacity="0.3"/>
+        </svg>
+      </div>
+      EMDASH STUDIO
     </a>
-    <ul class="nav-links">
-      <li><a href="#features">Features</a></li>
-      <li><a href="#agents">Agents</a></li>
-      <li><a href="#how">How it works</a></li>
-      <li><a href="#faq">FAQ</a></li>
-      <li><a href="#" style="color:var(--text2)">Docs</a></li>
-      <li><a href="#" style="color:var(--text2)">Blog</a></li>
-    </ul>
-    <div class="nav-actions">
-      <span class="badge-count">840K+ downloads</span>
-      <a href="#cta" class="btn btn-primary">Download</a>
-      <button class="nav-hamburger" id="hamburger" aria-label="Menu">
-        <span></span><span></span><span></span>
-      </button>
-    </div>
+    <div class="sb-sig"><span class="signal-dot"></span> <span>AGENTS ONLINE</span></div>
+  </div>
+  <div class="sb-links">
+    <a href="#features">FEATURES</a>
+    <a href="#agents">AGENTS</a>
+    <a href="#how">WORKFLOW</a>
+    <a href="#faq">FAQ</a>
+    <a href="#">DOCS</a>
+    <a href="#">CHANGELOG</a>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <a href="#cta" class="sb-dl">↓ DOWNLOAD</a>
+    <button class="sb-hamburger" id="hamburger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
   </div>
 </nav>
 
-<div class="mobile-menu" id="mobileMenu">
-  <a href="#features">Features</a>
-  <a href="#agents">Agents</a>
-  <a href="#how">How it works</a>
+<div id="mobile-nav">
+  <a href="#features">FEATURES</a>
+  <a href="#agents">AGENTS</a>
+  <a href="#how">WORKFLOW</a>
   <a href="#faq">FAQ</a>
-  <a href="#">Docs</a>
-  <a href="#">Blog</a>
-  <a href="#">Changelog</a>
-  <a href="#cta" class="btn btn-primary" style="margin-top:8px; text-align:center; justify-content:center;">Download Free</a>
+  <a href="#">DOCS</a>
+  <a href="#">CHANGELOG</a>
+  <a href="#cta" class="btn-gr" style="margin-top:8px;justify-content:center;">DOWNLOAD FREE</a>
 </div>
 
-<!-- HERO -->
+<!-- ── HERO ── -->
 <section id="hero">
-  <div class="hero-grid-bg"></div>
+  <div class="hero-grid"></div>
   <div class="hero-glow"></div>
-  <div class="container">
-    <div class="hero-badge fadeup">
-      <span class="hero-badge-dot"></span>
-      Open-source &mdash; Backed by Y Combinator
-    </div>
-
-    <h1 class="hero-title fadeup fadeup-1">
-      Your coding agent<br/>
-      <span class="accent glow-text">dashboard.</span>
-    </h1>
-
-    <p class="hero-sub fadeup fadeup-2">
-      Code purely by orchestrating agents. Run multiple in parallel,
-      each isolated in their own Git worktree. Ship faster than ever.
-    </p>
-
-    <div class="hero-actions fadeup fadeup-3">
-      <a href="#cta" class="btn btn-primary btn-lg">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        Download Free
-      </a>
-      <a href="#features" class="btn btn-secondary btn-lg">See how it works</a>
-    </div>
-
-    <div class="hero-stat fadeup fadeup-4">
-      <span>&#9632;</span> &nbsp;
-      Over 840,000 downloads &nbsp;&middot;&nbsp; macOS, Windows, Linux &nbsp;&middot;&nbsp; Free &amp; open source
-    </div>
-
-    <!-- Terminal Demo -->
-    <div class="terminal-window fadeup" style="margin-top: 64px; text-align:left; max-width:760px; margin-left:auto; margin-right:auto;">
-      <div class="terminal-toolbar">
-        <div class="terminal-dot td-red"></div>
-        <div class="terminal-dot td-yellow"></div>
-        <div class="terminal-dot td-green"></div>
-        <span class="terminal-title mono">agentflow — 3 agents running</span>
+  <div class="hero-inner">
+    <div class="hero-text">
+      <div class="hero-badge">
+        <span class="signal-dot"></span>
+        BACKED BY Y COMBINATOR &nbsp;/&nbsp; OPEN SOURCE
       </div>
-      <div class="terminal-body">
-        <span class="t-line t-dim"># Agent 1 — fix-navigation  &nbsp;&nbsp;&nbsp;&nbsp; worktree: origin/fix-navigation</span>
-        <span class="t-line t-accent">&#x2714; &nbsp;PR created: <span class="t-text">https://github.com/user/project/pull/49</span></span>
-        <span class="t-line t-dim">&nbsp;&nbsp;&nbsp;&nbsp;Removed unused imports from metric-widget.tsx</span>
-        <br/>
-        <span class="t-line t-dim"># Agent 2 — google-login  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; worktree: origin/google-login</span>
-        <span class="t-line t-amber">&#x25CF; &nbsp;Running: &nbsp;<span class="t-text">implementing OAuth2 flow, 3 files changed</span></span>
-        <span class="t-line" style="color:var(--text3);">&nbsp;&nbsp;&nbsp;&nbsp;+160 -89 &nbsp;&nbsp;12m elapsed</span>
-        <br/>
-        <span class="t-line t-dim"># Agent 3 — electron-app &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; worktree: origin/electron-app</span>
-        <span class="t-line t-accent">&#x2714; &nbsp;Changes staged — <span class="t-text">ready to review &amp; push</span></span>
-        <br/>
-        <span class="t-line" style="margin-top:4px">
-          <span class="t-dim">&#x276F; </span>
-          <span class="cursor-blink"></span>
-        </span>
+      <h1 class="hero-title glitch-title" data-text="YOUR CODING AGENT DASHBOARD.">
+        YOUR CODING<br/><span class="hl">AGENT DASHBOARD.</span>
+      </h1>
+      <p class="hero-sub">
+        Code purely by orchestrating agents.<br/>
+        Run multiple in parallel, each isolated<br/>
+        in their own Git worktree.
+      </p>
+      <div class="hero-actions">
+        <a href="#cta" class="btn-gr">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          DOWNLOAD FREE
+        </a>
+        <a href="#features" class="btn-outline">SEE HOW IT WORKS →</a>
       </div>
     </div>
-  </div>
-</section>
 
-<!-- STATS -->
-<section class="section--sm" id="stats">
-  <div class="container">
-    <div class="stats-row">
-      <div class="stat-item">
-        <div class="stat-num">840K+</div>
-        <div class="stat-label">downloads</div>
+    <!-- LIVE AGENT TERMINAL -->
+    <div class="agent-terminal">
+      <div class="at-bar">
+        <div class="at-dot r"></div>
+        <div class="at-dot y"></div>
+        <div class="at-dot g"></div>
+        <span class="at-title">emdash — agent orchestrator</span>
+        <span class="at-status">LIVE</span>
       </div>
-      <div class="stat-item">
-        <div class="stat-num">25+</div>
-        <div class="stat-label">coding agents</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-num">∞</div>
-        <div class="stat-label">parallel worktrees</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-num">100%</div>
-        <div class="stat-label">open source</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- FEATURES -->
-<section class="section" id="features">
-  <div class="container">
-    <p class="section-label">Capabilities</p>
-    <h2 style="max-width:520px">Everything your agentic workflow needs</h2>
-
-    <div class="features-grid">
-      <!-- Parallel agents -->
-      <div class="feature-card">
-        <div class="feature-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      <div class="at-body">
+        <div id="terminal-output"></div>
+        <div class="at-cursor-line">
+          <span style="color:var(--ph-dim);font-family:var(--font-mono);font-size:12px;">&#x276F;&nbsp;</span>
+          <span class="at-blinkcursor"></span>
         </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── TICKER ── -->
+<div id="ticker-wrap">
+  <div id="ticker">
+    <!-- populated by JS to double the content for seamless loop -->
+  </div>
+</div>
+
+<!-- ── STATS ── -->
+<section class="sec-alt" style="padding:52px 0;">
+  <div class="container">
+    <div class="stat-row reveal">
+      <div class="stat-item"><div class="stat-num">840K+</div><div class="stat-lbl">DOWNLOADS</div></div>
+      <div class="stat-item"><div class="stat-num">25+</div><div class="stat-lbl">CODING AGENTS</div></div>
+      <div class="stat-item"><div class="stat-num">∞</div><div class="stat-lbl">PARALLEL WORKTREES</div></div>
+      <div class="stat-item"><div class="stat-num">100%</div><div class="stat-lbl">OPEN SOURCE</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FEATURES ── -->
+<section class="sec" id="features">
+  <div class="container">
+    <p class="sec-label">// CAPABILITIES</p>
+    <h2 class="sec-title">Everything your agentic<br/>workflow needs.</h2>
+    <div class="feat-grid">
+
+      <div class="feat-card reveal">
+        <div class="feat-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--gr)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        </div>
+        <div class="feat-tag">[ PARALLEL_AGENTS ]</div>
         <h3>Parallel Agents</h3>
-        <p>Run multiple coding agents simultaneously. Each agent lives in an isolated Git worktree so they never conflict with each other.</p>
-        <span class="feature-tag">[ Parallel Agents ]</span>
+        <p>Run multiple coding agents simultaneously. Each agent is isolated in its own Git worktree — no conflicts, no context collisions.</p>
       </div>
 
-      <!-- Git Worktrees -->
-      <div class="feature-card">
-        <div class="feature-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)"><circle cx="12" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><circle cx="18" cy="6" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/><line x1="6" y1="9" x2="6" y2="12"/></svg>
+      <div class="feat-card reveal">
+        <div class="feat-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--am)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><circle cx="18" cy="6" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/><line x1="6" y1="9" x2="6" y2="12"/></svg>
         </div>
+        <div class="feat-tag">[ GIT_WORKTREE ]</div>
         <h3>Git Worktree Isolation</h3>
-        <p>Every agent gets its own isolated Git worktree. Work on multiple features simultaneously without branch-switching headaches.</p>
-        <span class="feature-tag">[ Worktree ]</span>
+        <p>Every agent gets a fully isolated Git worktree. Work on multiple features simultaneously without branch-switching friction.</p>
       </div>
 
-      <!-- Issues -->
-      <div class="feature-card">
-        <div class="feature-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <div class="feat-card reveal">
+        <div class="feat-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--cy)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
         </div>
-        <h3>Issue Integration</h3>
-        <p>Pull issues directly from Linear, Jira, GitHub, GitLab, or Asana. Pass them to agents with full context — no copy-paste.</p>
-        <span class="feature-tag">[ Issues ]</span>
-      </div>
-
-      <!-- Diff & Ship -->
-      <div class="feature-card">
-        <div class="feature-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-        </div>
-        <h3>Built-in Diff View</h3>
-        <p>Review diffs, commit, and push without switching tools. Write code, review changes, and ship — all from one dashboard.</p>
-        <span class="feature-tag">[ Accelerate ]</span>
-      </div>
-
-      <!-- MCP -->
-      <div class="feature-card">
-        <div class="feature-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-        </div>
+        <div class="feat-tag">[ MCP_PROTOCOL ]</div>
         <h3>MCP Servers</h3>
-        <p>Connect tools through MCP without extra glue code. Detected automatically — no setup checklist, no manual wiring.</p>
-        <span class="feature-tag">[ MCP ]</span>
+        <p>Connect tools through MCP without extra glue code. Installed agent CLIs are auto-detected — zero setup checklist required.</p>
       </div>
 
-      <!-- Remote SSH -->
-      <div class="feature-card">
-        <div class="feature-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      <div class="feat-card reveal">
+        <div class="feat-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--rd)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
         </div>
-        <h3>Remote SSH</h3>
-        <p>Run agents on any machine. Connect over SSH to your dev server, cloud VM, or GPU box. Agents run remotely with full isolation.</p>
-        <span class="feature-tag">[ Remote SSH ]</span>
+        <div class="feat-tag">[ ISSUE_FEED ]</div>
+        <h3>Issue Integration</h3>
+        <p>Pull issues directly from Linear, Jira, GitHub, GitLab, or Asana. Pass them to agents with full context — no copy-paste required.</p>
       </div>
+
+      <div class="feat-card reveal">
+        <div class="feat-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--gr)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        </div>
+        <div class="feat-tag">[ DIFF_VIEW ]</div>
+        <h3>Built-in Diff &amp; Ship</h3>
+        <p>Review diffs, commit, and push without switching tools. Write code, review changes, and ship — all from one dashboard.</p>
+      </div>
+
+      <div class="feat-card reveal">
+        <div class="feat-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--am)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        </div>
+        <div class="feat-tag">[ REMOTE_SSH ]</div>
+        <h3>Remote SSH</h3>
+        <p>Run agents on any machine. Connect over SSH to your dev server, cloud VM, or GPU box with full worktree isolation.</p>
+      </div>
+
     </div>
   </div>
 </section>
 
-<!-- SHOWCASE — PARALLEL AGENTS -->
-<section class="section" id="showcase" style="background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+<!-- ── SHOWCASE: PARALLEL ── -->
+<section class="sec sec-alt" id="showcase">
   <div class="container">
     <div class="showcase-grid">
-      <div class="showcase-text">
-        <p class="section-label">Orchestrate</p>
-        <h2>Multiple agents.<br/>One dashboard.</h2>
-        <p>Stop context-switching. Agentflow lets you run Claude Code, Codex, Cursor, Amp, Gemini, and more — all at once, each in an isolated worktree — while you stay in control from a single view.</p>
-        <ul class="showcase-list">
-          <li>
-            <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-            Each agent gets a fully isolated Git worktree
-          </li>
-          <li>
-            <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-            No merge conflicts between parallel agents
-          </li>
-          <li>
-            <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-            Mix and match agents per task
-          </li>
-          <li>
-            <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-            Real-time status across all running agents
-          </li>
+      <div>
+        <p class="sec-label">// ORCHESTRATE</p>
+        <h2 class="sec-title">Multiple agents.<br/>One dashboard.</h2>
+        <p class="sec-sub">Stop context-switching. Emdash Studio lets you run Claude Code, Codex, Cursor, Amp, Gemini, and more — all at once, each in an isolated worktree — while you stay in control from a single terminal view.</p>
+        <ul class="showcase-list reveal">
+          <li><span class="check">✓</span> Each agent gets a fully isolated Git worktree</li>
+          <li><span class="check">✓</span> No merge conflicts between parallel agents</li>
+          <li><span class="check">✓</span> Mix and match agents per task or project</li>
+          <li><span class="check">✓</span> Real-time status across all running agents</li>
+          <li><span class="check">✓</span> Automatic PR creation when agents finish</li>
         </ul>
       </div>
-      <div class="worktree-diagram">
-        <span class="t-dim t-line">&#x2500;&#x2500; active worktrees &#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;</span>
-        <br/>
-        <span class="t-line">
-          <span class="wt-branch">&#x251C;&#x2500; fix-navigation</span> &nbsp;&nbsp;&nbsp;
-          <span class="wt-status-ok">DONE</span>
-        </span>
-        <span class="t-line t-dim">&nbsp;&nbsp;&nbsp;&nbsp; agent: claude-code &nbsp;&nbsp; +160 -89</span>
-        <span class="t-line t-dim">&nbsp;&nbsp;&nbsp;&nbsp; PR #49 created &amp; merged</span>
-        <br/>
-        <span class="t-line">
-          <span class="wt-branch">&#x251C;&#x2500; google-login</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-          <span class="wt-status-run">RUNNING</span>
-        </span>
-        <span class="t-line t-dim">&nbsp;&nbsp;&nbsp;&nbsp; agent: codex &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 12m</span>
-        <span class="t-line t-dim">&nbsp;&nbsp;&nbsp;&nbsp; 3 files modified...</span>
-        <br/>
-        <span class="t-line">
-          <span class="wt-branch">&#x251C;&#x2500; electron-app</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-          <span class="wt-status-ok">STAGED</span>
-        </span>
-        <span class="t-line t-dim">&nbsp;&nbsp;&nbsp;&nbsp; agent: cursor &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; +128 -32</span>
-        <span class="t-line t-dim">&nbsp;&nbsp;&nbsp;&nbsp; ready to review</span>
-        <br/>
-        <span class="t-line">
-          <span class="wt-branch">&#x2514;&#x2500; fix-redirect</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-          <span class="wt-status-run">RUNNING</span>
-        </span>
-        <span class="t-line t-dim">&nbsp;&nbsp;&nbsp;&nbsp; agent: gemini &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 4m</span>
-        <span class="t-line t-dim">&nbsp;&nbsp;&nbsp;&nbsp; investigating root cause...</span>
+      <div class="wt-terminal reveal">
+        <div class="wt-bar">
+          <span>WORKTREE STATUS</span>
+          <span style="color:var(--gr);">4 ACTIVE</span>
+        </div>
+        <div class="wt-body" id="wt-live">
+          <div class="wt-row"><span class="wt-dim">──────────────────────────────────</span></div>
+          <div class="wt-row"><span class="wt-br">├─ fix-navigation</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="wt-ok">[ DONE ]</span></div>
+          <div class="wt-row"><span class="wt-dim">&nbsp;&nbsp;&nbsp;&nbsp;claude-code · +160 -89 · 12m</span></div>
+          <div class="wt-row"><span class="wt-dim">&nbsp;&nbsp;&nbsp;&nbsp;PR #49 created and merged ✓</span></div>
+          <div class="wt-row">&nbsp;</div>
+          <div class="wt-row"><span class="wt-br">├─ google-login</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="wt-run" id="wt-r1">[ RUN ]</span></div>
+          <div class="wt-row"><span class="wt-dim">&nbsp;&nbsp;&nbsp;&nbsp;codex · 3 files modified</span></div>
+          <div class="wt-row"><span class="wt-dim" id="wt-t1">&nbsp;&nbsp;&nbsp;&nbsp;elapsed: 00:14:22</span></div>
+          <div class="wt-row">&nbsp;</div>
+          <div class="wt-row"><span class="wt-br">├─ electron-app</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="wt-ok">[ STAGED ]</span></div>
+          <div class="wt-row"><span class="wt-dim">&nbsp;&nbsp;&nbsp;&nbsp;cursor · +128 -32 · ready</span></div>
+          <div class="wt-row">&nbsp;</div>
+          <div class="wt-row"><span class="wt-br">└─ fix-redirect</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="wt-run" id="wt-r2">[ RUN ]</span></div>
+          <div class="wt-row"><span class="wt-dim" id="wt-t2">&nbsp;&nbsp;&nbsp;&nbsp;gemini · elapsed: 00:04:09</span></div>
+          <div class="wt-row"><span class="wt-dim">──────────────────────────────────</span></div>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- AGENTS -->
-<section class="section" id="agents">
-  <div class="container agents-section">
-    <p class="section-label">Compatibility</p>
-    <h2>Works with 25+ coding agents</h2>
-    <p class="section-sub">Agentflow works with every major coding agent. Mix and match per task, or just use your favorite. Auto-detection means zero setup.</p>
-    <div class="agents-scroll">
+<!-- ── AGENTS ── -->
+<section class="sec" id="agents" style="text-align:center;">
+  <div class="container">
+    <p class="sec-label">// COMPATIBILITY</p>
+    <h2 class="sec-title">Works with 25+ coding agents</h2>
+    <p class="sec-sub" style="margin:12px auto 0;text-align:center;">Mix and match per task, or just use your favorite. Auto-detection — no setup.</p>
+    <div class="agents-wrap reveal">
       <div class="agent-chip"><span class="agent-chip-dot"></span>Claude Code</div>
       <div class="agent-chip"><span class="agent-chip-dot"></span>Codex</div>
       <div class="agent-chip"><span class="agent-chip-dot"></span>Cursor</div>
@@ -1204,298 +1117,208 @@
       <div class="agent-chip"><span class="agent-chip-dot"></span>SWE-agent</div>
       <div class="agent-chip"><span class="agent-chip-dot"></span>Devin</div>
       <div class="agent-chip"><span class="agent-chip-dot"></span>Plandex</div>
-      <div class="agent-chip"><span class="agent-chip-dot"></span>+12 more</div>
+      <div class="agent-chip" style="color:var(--gr);border-color:var(--border2);">+ 12 more</div>
     </div>
-    <p style="margin-top:28px; font-size:13px; color:var(--text3); font-family:var(--font-mono);">
-      auto-detected — no setup checklist required
+    <p style="margin-top:20px;font-family:var(--font-mono);font-size:11px;color:var(--ph-dim);opacity:.5;letter-spacing:.15em;">
+      AUTO-DETECTED · NO SETUP CHECKLIST · ZERO CONFIG
     </p>
   </div>
 </section>
 
-<!-- HOW IT WORKS -->
-<section class="section" id="how" style="background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+<!-- ── HOW IT WORKS ── -->
+<section class="sec sec-alt" id="how">
   <div class="container">
-    <p class="section-label">Workflow</p>
-    <h2>How Agentflow works</h2>
-    <p style="color:var(--text2);max-width:480px;margin-top:12px;font-size:14px;">From issue to merged PR in minutes. No friction, no tab-switching, no context loss.</p>
+    <p class="sec-label">// WORKFLOW</p>
+    <h2 class="sec-title">From issue to merged PR<br/>in minutes.</h2>
     <div class="steps-grid">
-      <div class="step-card">
+      <div class="step-card reveal">
         <div class="step-num">01 / CONNECT</div>
         <h3>Pull your issues</h3>
-        <p>Import issues from GitHub, Linear, Jira, GitLab, or Asana directly into Agentflow. Each issue becomes a task with full context attached.</p>
+        <p>Import from GitHub, Linear, Jira, GitLab, or Asana. Each issue becomes a task with full context attached for the agent.</p>
       </div>
-      <div class="step-card">
+      <div class="step-card reveal">
         <div class="step-num">02 / ASSIGN</div>
         <h3>Choose your agent</h3>
-        <p>Pick any coding agent — Claude Code, Codex, Cursor, or another. Agentflow spins up an isolated Git worktree and passes the full context.</p>
+        <p>Pick any coding agent. Emdash spins up an isolated Git worktree and passes the full context automatically.</p>
       </div>
-      <div class="step-card">
+      <div class="step-card reveal">
         <div class="step-num">03 / PARALLELIZE</div>
         <h3>Run agents in parallel</h3>
-        <p>Launch multiple agents simultaneously. Each runs in its own worktree. Monitor them all from a single dashboard in real time.</p>
+        <p>Launch multiple agents simultaneously. Each runs in its own worktree. Monitor all of them from a single dashboard.</p>
       </div>
-      <div class="step-card">
+      <div class="step-card reveal">
         <div class="step-num">04 / SHIP</div>
         <h3>Review, commit &amp; push</h3>
-        <p>Built-in diff view lets you review changes inline. Commit and push without leaving Agentflow. Create PRs with one click.</p>
+        <p>Built-in diff view. Review inline, commit, push, and create PRs without leaving Emdash Studio.</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- INFRA / BRING YOUR OWN -->
-<section class="section" id="infra">
+<!-- ── INFRA ── -->
+<section class="sec" id="infra">
   <div class="container">
     <div class="infra-grid">
       <div>
-        <p class="section-label">Infrastructure</p>
-        <h2>Bring your own infra</h2>
-        <p style="color:var(--text2);margin:16px 0;line-height:1.75;font-size:14px;">Provision and teardown isolated workspaces on demand. Run locally, on cloud VMs, or your own GPU box. Full worktree isolation everywhere.</p>
-        <ul class="showcase-list">
-          <li>
-            <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-            Ephemeral workspaces — spin up &amp; teardown on demand
-          </li>
-          <li>
-            <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-            SSH access to your remote server, cloud VM, or GPU box
-          </li>
-          <li>
-            <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-            Encrypted storage for each worktree
-          </li>
-          <li>
-            <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-            Provision.sh scripts for repeatable workspace setup
-          </li>
+        <p class="sec-label">// INFRASTRUCTURE</p>
+        <h2 class="sec-title">Bring your<br/>own infra.</h2>
+        <p class="sec-sub">Provision and teardown isolated workspaces on demand. Run locally, on cloud VMs, or your own GPU box. Full worktree isolation everywhere.</p>
+        <ul class="showcase-list" style="margin-top:24px;">
+          <li><span class="check">✓</span> Ephemeral workspaces — spin up &amp; teardown on demand</li>
+          <li><span class="check">✓</span> SSH access to remote server, cloud VM, or GPU box</li>
+          <li><span class="check">✓</span> Encrypted storage (ext4) for each worktree</li>
+          <li><span class="check">✓</span> Provision scripts for repeatable workspace setup</li>
+          <li><span class="check">✓</span> 4 vCPU · 8 GB RAM per workspace, configurable</li>
         </ul>
       </div>
-      <div class="terminal-window">
-        <div class="terminal-toolbar">
-          <div class="terminal-dot td-red"></div>
-          <div class="terminal-dot td-yellow"></div>
-          <div class="terminal-dot td-green"></div>
-          <span class="terminal-title mono">provision.sh</span>
+      <div class="provision-term reveal">
+        <div class="pv-bar">
+          <div class="pv-dot r"></div>
+          <div class="pv-dot y"></div>
+          <div class="pv-dot g"></div>
+          <span class="pv-title">provision.sh — workspace bootstrap</span>
         </div>
-        <div class="terminal-body" style="font-size:12px;">
-          <span class="t-line t-dim">$ ./scripts/provision.sh</span>
-          <span class="t-line t-dim">&#x2192; resolving workspace config from .agentflowrc</span>
-          <span class="t-line t-accent">&#x2713; found image agentflow/dev:latest</span>
-          <span class="t-line t-dim">&#x2192; pulling base layer &nbsp;&middot; 142 MB ......... done</span>
-          <span class="t-line t-dim">&#x2192; allocating compute &nbsp;&middot; 4 vCPU &middot; 8 GB RAM</span>
-          <span class="t-line t-dim">&#x2192; mounting /workspace (ext4, encrypted)</span>
-          <span class="t-line t-dim">&#x2192; spawning git worktree for branch dev/jane</span>
-          <span class="t-line t-dim">&#x2192; installing dependencies</span>
-          <span class="t-line t-dim">&nbsp;&nbsp;&nbsp; + node@22.11.0 &middot; pnpm@10.0.0</span>
-          <span class="t-line t-dim">&#x2192; generating ed25519 keypair</span>
-          <span class="t-line t-dim">&#x2192; opening tunnel devuser@10.0.1.42:22</span>
-          <span class="t-line t-dim">&#x2192; health check &middot; 4/4 services healthy &middot; 1.2s</span>
-          <span class="t-line t-accent">&#x2713; workspace ready in 11.8s</span>
-          <br/>
-          <span class="t-line" style="color:var(--text3)">Connected to 10.0.1.42</span>
-          <span class="t-line"><span class="t-dim">&#x276F; </span><span class="cursor-blink"></span></span>
+        <div class="pv-body">
+          <span class="pv-line dim">$ ./scripts/provision.sh</span>
+          <span class="pv-line dim">→ resolving config from .emdashrc</span>
+          <span class="pv-line gr2">✓ found image emdash/dev:latest</span>
+          <span class="pv-line dim">→ pulling base layer · 142 MB ......... done</span>
+          <span class="pv-line dim">→ allocating compute</span>
+          <span class="pv-line cy2">&nbsp;&nbsp;· 4 vCPU · 8 GB RAM · NVMe</span>
+          <span class="pv-line dim">→ mounting /workspace (ext4, encrypted)</span>
+          <span class="pv-line dim">→ spawning git worktree: branch dev/jane</span>
+          <span class="pv-line dim">→ installing dependencies</span>
+          <span class="pv-line dim">&nbsp;&nbsp;+ node@22.11.0 · pnpm@10.0.0</span>
+          <span class="pv-line dim">→ generating ed25519 keypair → ~/.ssh/id_emdash</span>
+          <span class="pv-line dim">→ opening tunnel devuser@10.0.1.42:22</span>
+          <span class="pv-line dim">→ health check · 4/4 services healthy · 1.2s</span>
+          <span class="pv-line gr2">✓ workspace ready in 11.8s</span>
+          <span class="pv-line">&nbsp;</span>
+          <span class="pv-line am2">Connected to 10.0.1.42</span>
+          <span class="pv-line dim">&#x276F; <span style="display:inline-block;width:8px;height:14px;background:var(--gr);vertical-align:-3px;animation:cur-blink 1s step-end infinite;"></span></span>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- INTEGRATIONS -->
-<section class="section" id="integrations" style="background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+<!-- ── INTEGRATIONS ── -->
+<section class="sec sec-alt" id="integrations">
   <div class="container">
-    <p class="section-label">Integrations</p>
-    <h2>Plugs into your existing stack</h2>
-    <p style="color:var(--text2);max-width:480px;margin-top:12px;font-size:14px;">Connect your issue trackers, version control, and CI/CD tools. Agentflow fits into what you already use.</p>
-    <div class="integrations-grid">
-      <div class="integration-card">
-        <div class="int-icon">&#x1F4BB;</div>
-        <div class="int-name">GitHub</div>
-        <div class="int-type">issues &middot; PRs &middot; CI</div>
-      </div>
-      <div class="integration-card">
-        <div class="int-icon">&#x25A6;</div>
-        <div class="int-name">Linear</div>
-        <div class="int-type">issue tracker</div>
-      </div>
-      <div class="integration-card">
-        <div class="int-icon">&#x2609;</div>
-        <div class="int-name">Jira</div>
-        <div class="int-type">issue tracker</div>
-      </div>
-      <div class="integration-card">
-        <div class="int-icon">&#x2347;</div>
-        <div class="int-name">GitLab</div>
-        <div class="int-type">VCS &middot; CI/CD</div>
-      </div>
-      <div class="integration-card">
-        <div class="int-icon">&#x25CE;</div>
-        <div class="int-name">Asana</div>
-        <div class="int-type">project management</div>
-      </div>
-      <div class="integration-card">
-        <div class="int-icon">&#x2609;</div>
-        <div class="int-name">MCP Servers</div>
-        <div class="int-type">tool protocol</div>
-      </div>
+    <p class="sec-label">// INTEGRATIONS</p>
+    <h2 class="sec-title">Plugs into<br/>your existing stack.</h2>
+    <div class="int-grid reveal">
+      <div class="int-card"><div class="int-ico">⎇</div><div><div class="int-name">GitHub</div><div class="int-type">issues · PRs · CI</div></div></div>
+      <div class="int-card"><div class="int-ico">◈</div><div><div class="int-name">Linear</div><div class="int-type">issue tracker</div></div></div>
+      <div class="int-card"><div class="int-ico">◉</div><div><div class="int-name">Jira</div><div class="int-type">issue tracker</div></div></div>
+      <div class="int-card"><div class="int-ico">⊞</div><div><div class="int-name">GitLab</div><div class="int-type">VCS · CI/CD</div></div></div>
+      <div class="int-card"><div class="int-ico">◎</div><div><div class="int-name">Asana</div><div class="int-type">project mgmt</div></div></div>
+      <div class="int-card"><div class="int-ico">⟳</div><div><div class="int-name">MCP Servers</div><div class="int-type">tool protocol</div></div></div>
     </div>
   </div>
 </section>
 
-<!-- TESTIMONIALS -->
-<section class="section" id="testimonials">
+<!-- ── TESTIMONIALS ── -->
+<section class="sec" id="testimonials">
   <div class="container">
-    <p class="section-label">Community</p>
-    <h2>What developers say</h2>
-    <div class="testimonials-grid">
-      <div class="testimonial-card">
+    <p class="sec-label">// COMMUNITY</p>
+    <h2 class="sec-title">What developers say.</h2>
+    <div class="testi-grid">
+      <div class="testi-card reveal">
         <p>"I'm shipping 3x faster. Having Claude Code and Codex running parallel branches is a game changer — I just review and merge while they work."</p>
-        <div class="testimonial-author">
-          <div class="author-avatar">JL</div>
-          <div>
-            <div class="author-name">Jake L.</div>
-            <div class="author-role">Senior Engineer</div>
-          </div>
-        </div>
+        <div class="testi-author"><div class="testi-av">JL</div><div><div class="testi-name">Jake L.</div><div class="testi-role">SENIOR ENGINEER</div></div></div>
       </div>
-      <div class="testimonial-card">
+      <div class="testi-card reveal">
         <p>"The worktree isolation is the killer feature. No more stashing and switching — each agent has a clean environment. It just works."</p>
-        <div class="testimonial-author">
-          <div class="author-avatar">SM</div>
-          <div>
-            <div class="author-name">Sara M.</div>
-            <div class="author-role">Full-stack Dev</div>
-          </div>
-        </div>
+        <div class="testi-author"><div class="testi-av">SM</div><div><div class="testi-name">Sara M.</div><div class="testi-role">FULL-STACK DEV</div></div></div>
       </div>
-      <div class="testimonial-card">
-        <p>"I pulled our Jira backlog in, assigned 4 tasks to 4 different agents, and all 4 PRs were open by the time I finished my coffee."</p>
-        <div class="testimonial-author">
-          <div class="author-avatar">RK</div>
-          <div>
-            <div class="author-name">Rahul K.</div>
-            <div class="author-role">Tech Lead</div>
-          </div>
-        </div>
+      <div class="testi-card reveal">
+        <p>"Pulled our Jira backlog in, assigned 4 tasks to 4 agents, and all 4 PRs were open by the time I finished my coffee. Actual magic."</p>
+        <div class="testi-author"><div class="testi-av">RK</div><div><div class="testi-name">Rahul K.</div><div class="testi-role">TECH LEAD</div></div></div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- FAQ -->
-<section class="section" id="faq" style="background:var(--bg2);border-top:1px solid var(--border);">
-  <div class="container" style="text-align:center;">
-    <p class="section-label">FAQ</p>
-    <h2>Frequently asked questions</h2>
-    <div class="faq-grid">
-      <div class="faq-item open">
-        <div class="faq-question" onclick="toggleFaq(this)">
-          What is Agentflow?
-          <span class="faq-toggle">+</span>
-        </div>
-        <div class="faq-answer">
-          Agentflow is an open-source agentic development environment — your coding agent dashboard. It lets you orchestrate multiple coding agents (Claude Code, Codex, Cursor, Gemini, and 20+ more) in parallel, each isolated in their own Git worktree. You write code by directing agents, reviewing their diffs, and merging — all from a single unified interface.
-        </div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-question" onclick="toggleFaq(this)">
-          Is it free?
-          <span class="faq-toggle">+</span>
-        </div>
-        <div class="faq-answer">
-          Yes. Agentflow is completely free and open source. You can download it today on macOS, Windows, or Linux at no cost. The source code is publicly available on GitHub.
-        </div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-question" onclick="toggleFaq(this)">
-          Is my code private?
-          <span class="faq-toggle">+</span>
-        </div>
-        <div class="faq-answer">
-          Yes. Agentflow runs locally on your machine. Your code never leaves your environment unless you explicitly push it. When using remote SSH or cloud infra, data stays within your own provisioned workspace.
-        </div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-question" onclick="toggleFaq(this)">
-          Which agents are supported?
-          <span class="faq-toggle">+</span>
-        </div>
-        <div class="faq-answer">
-          Agentflow supports 25+ coding agents including Claude Code, Codex, Cursor, Amp, Gemini, GitHub Copilot, Aider, Continue, Cline, OpenHands, SWE-agent, Devin, Plandex, and many more. Installed agent CLIs are auto-detected — no setup required.
-        </div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-question" onclick="toggleFaq(this)">
-          Do I need API keys?
-          <span class="faq-toggle">+</span>
-        </div>
-        <div class="faq-answer">
-          It depends on the agent. Some agents (like Claude Code or Codex) require your own API key from the provider. Agentflow itself doesn't require any API keys — it's the orchestration layer that sits on top of the agents you already use.
-        </div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-question" onclick="toggleFaq(this)">
-          What platforms are supported?
-          <span class="faq-toggle">+</span>
-        </div>
-        <div class="faq-answer">
-          Agentflow supports macOS, Windows, and Linux. Desktop installers are available for all three. You can also run agents remotely over SSH on any server or cloud VM.
-        </div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-question" onclick="toggleFaq(this)">
-          How do I install it?
-          <span class="faq-toggle">+</span>
-        </div>
-        <div class="faq-answer">
-          Click the Download button at the top of the page or in the section below. Choose the installer for your platform (macOS .dmg, Windows .exe, or Linux .AppImage). Once installed, Agentflow auto-detects your coding agents and you can start orchestrating immediately.
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- CTA -->
-<section id="cta">
-  <div class="cta-glow"></div>
+<!-- ── FAQ ── -->
+<section class="sec sec-alt" id="faq" style="text-align:center;">
   <div class="container">
-    <p class="section-label">Get started</p>
-    <h2>Start coding with agents today</h2>
-    <p>Free, open source, and ready in minutes. Download for macOS, Windows, or Linux.</p>
-    <div class="hero-actions">
-      <a href="#" class="btn btn-primary btn-lg">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        Download for macOS
-      </a>
-      <a href="#" class="btn btn-secondary btn-lg">Windows</a>
-      <a href="#" class="btn btn-secondary btn-lg">Linux</a>
+    <p class="sec-label">// FAQ</p>
+    <h2 class="sec-title">Frequently asked.</h2>
+    <div class="faq-wrap">
+      <div class="faq-item open">
+        <div class="faq-q" onclick="toggleFaq(this)">What is Emdash Studio?<span class="faq-toggle">+</span></div>
+        <div class="faq-a">Emdash Studio is an open-source agentic development environment — your coding agent dashboard. It lets you orchestrate multiple coding agents (Claude Code, Codex, Cursor, Gemini, and 20+ more) in parallel, each isolated in their own Git worktree. You ship code by directing agents, reviewing their diffs, and merging — all from a single unified interface.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">Is it free?<span class="faq-toggle">+</span></div>
+        <div class="faq-a">Yes. Emdash Studio is completely free and open source. Download it today on macOS, Windows, or Linux at no cost. The source code is publicly available on GitHub under MIT license.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">Is my code private?<span class="faq-toggle">+</span></div>
+        <div class="faq-a">Yes. Emdash Studio runs locally on your machine. Your code never leaves your environment unless you explicitly push it. When using remote SSH or cloud infra, data stays within your own provisioned workspace.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">Which agents are supported?<span class="faq-toggle">+</span></div>
+        <div class="faq-a">Emdash Studio supports 25+ coding agents including Claude Code, Codex, Cursor, Amp, Gemini, GitHub Copilot, Aider, Continue, Cline, OpenHands, SWE-agent, Devin, Plandex, and many more. Installed agent CLIs are auto-detected — no setup required.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">Do I need API keys?<span class="faq-toggle">+</span></div>
+        <div class="faq-a">It depends on the agent. Some agents require your own API key from their provider. Emdash Studio itself requires no API keys — it's the orchestration layer that sits on top of the agents you already use.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">What platforms are supported?<span class="faq-toggle">+</span></div>
+        <div class="faq-a">Emdash Studio supports macOS (Apple Silicon &amp; Intel), Windows, and Linux. Desktop installers are available for all three platforms. You can also run agents remotely over SSH on any server or cloud VM.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">How do I install it?<span class="faq-toggle">+</span></div>
+        <div class="faq-a">Click the Download button. Choose the installer for your platform (macOS .dmg, Windows .exe, or Linux .AppImage). Once installed, Emdash Studio auto-detects your coding agents and you can start orchestrating immediately. Total setup time: under 2 minutes.</div>
+      </div>
     </div>
-    <p style="margin-top:24px; font-size:12px; color:var(--text3); font-family:var(--font-mono);">
-      v1 available now &nbsp;&middot;&nbsp; 840K+ downloads &nbsp;&middot;&nbsp; open source on GitHub
-    </p>
   </div>
 </section>
 
-<!-- FOOTER -->
-<footer>
-  <div class="footer-inner">
-    <div class="footer-brand">
-      <a href="#" class="nav-logo" style="display:inline-flex;">
-        <div class="nav-logo-mark">A</div>
-        AGENTFLOW
-      </a>
-      <p>Open-source agentic development environment. Orchestrate coding agents from a unified dashboard.</p>
+<!-- ── CTA ── -->
+<section id="cta">
+  <div class="cta-glow-bot"></div>
+  <div class="container">
+    <p class="sec-label" style="text-align:center;">// GET STARTED</p>
+    <h2>Start shipping with<br/>agents today.</h2>
+    <p>Free, open source, and ready in under 2 minutes.<br/>macOS · Windows · Linux</p>
+    <div class="dl-group">
+      <a href="#" class="btn-gr" style="padding:12px 24px;font-size:14px;">↓ macOS</a>
+      <a href="#" class="btn-outline" style="padding:11px 20px;font-size:13px;">Windows</a>
+      <a href="#" class="btn-outline" style="padding:11px 20px;font-size:13px;">Linux</a>
     </div>
-    <div class="footer-links">
-      <div class="footer-col">
+    <p class="dl-note">v1.0 NOW AVAILABLE · 840K+ DOWNLOADS · MIT LICENSE · GITHUB ↗</p>
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="container">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <a href="#" class="foot-brand-logo">
+          <svg width="20" height="20" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
+            <rect x="1" y="1" width="20" height="20" rx="3" stroke="#2dffb0" stroke-width="1.2"/>
+            <path d="M6 11h10M11 6v10" stroke="#2dffb0" stroke-width="1.5" stroke-linecap="round"/>
+            <circle cx="11" cy="11" r="2" fill="#2dffb0" opacity="0.3"/>
+          </svg>
+          EMDASH STUDIO
+        </a>
+        <p>Open-source agentic development environment. Orchestrate coding agents from a unified terminal dashboard.</p>
+      </div>
+      <div class="foot-col">
         <h4>Product</h4>
         <ul>
           <li><a href="#features">Features</a></li>
           <li><a href="#agents">Agents</a></li>
           <li><a href="#">Changelog</a></li>
-          <li><a href="#">Download</a></li>
+          <li><a href="#cta">Download</a></li>
         </ul>
       </div>
-      <div class="footer-col">
+      <div class="foot-col">
         <h4>Resources</h4>
         <ul>
           <li><a href="#">Docs</a></li>
@@ -1504,7 +1327,7 @@
           <li><a href="#">Discord</a></li>
         </ul>
       </div>
-      <div class="footer-col">
+      <div class="foot-col">
         <h4>Company</h4>
         <ul>
           <li><a href="#">About</a></li>
@@ -1514,63 +1337,211 @@
         </ul>
       </div>
     </div>
-  </div>
-  <div class="footer-bottom">
-    <span>&copy; 2025 Agentflow. Open source, MIT License.</span>
-    <span>Built for developers who ship.</span>
+    <div class="foot-bottom">
+      <span>© 2025 EMDASH STUDIO · OPEN SOURCE · MIT LICENSE</span>
+      <span>BUILT FOR DEVELOPERS WHO SHIP.</span>
+    </div>
   </div>
 </footer>
 
+</div><!-- /#main -->
+
 <script>
-  // Mobile menu toggle
-  const hamburger = document.getElementById('hamburger');
-  const mobileMenu = document.getElementById('mobileMenu');
-  hamburger.addEventListener('click', () => {
-    mobileMenu.classList.toggle('open');
-  });
+/* ──────────────────────────────────────────────────
+   INTRO SCREEN
+────────────────────────────────────────────────── */
+const intro = document.getElementById('intro');
+const glitchOverlay = document.getElementById('glitch-overlay');
+const main = document.getElementById('main');
 
-  // Close mobile menu on link click
-  mobileMenu.querySelectorAll('a').forEach(link => {
-    link.addEventListener('click', () => mobileMenu.classList.remove('open'));
-  });
+function enterSite() {
+  intro.classList.add('fade-out');
+  glitchOverlay.classList.add('active');
+  setTimeout(() => {
+    intro.style.display = 'none';
+    main.classList.add('visible');
+    startTerminal();
+    startWorktreeTimer();
+  }, 620);
+}
 
-  // FAQ toggle
-  function toggleFaq(el) {
-    const item = el.parentElement;
-    const isOpen = item.classList.contains('open');
-    // Close all
-    document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
-    // Open clicked if it was closed
-    if (!isOpen) item.classList.add('open');
+intro.addEventListener('click', enterSite);
+document.addEventListener('keydown', (e) => {
+  if (intro.style.display !== 'none') enterSite();
+});
+intro.addEventListener('touchstart', enterSite, {passive:true});
+
+/* ──────────────────────────────────────────────────
+   MOBILE NAV
+────────────────────────────────────────────────── */
+document.getElementById('hamburger').addEventListener('click', () => {
+  document.getElementById('mobile-nav').classList.toggle('open');
+});
+document.querySelectorAll('#mobile-nav a').forEach(a => {
+  a.addEventListener('click', () => document.getElementById('mobile-nav').classList.remove('open'));
+});
+
+/* ──────────────────────────────────────────────────
+   FAQ TOGGLE
+────────────────────────────────────────────────── */
+function toggleFaq(el) {
+  const item = el.parentElement;
+  const isOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+  if (!isOpen) item.classList.add('open');
+}
+
+/* ──────────────────────────────────────────────────
+   TICKER
+────────────────────────────────────────────────── */
+const tickItems = [
+  ['840K+', 'DOWNLOADS'],
+  ['25+', 'AGENTS SUPPORTED'],
+  ['100%', 'OPEN SOURCE'],
+  ['v1', 'NOW AVAILABLE'],
+  ['macOS', 'WINDOWS · LINUX'],
+  ['ZERO', 'SETUP REQUIRED'],
+  ['∞', 'PARALLEL WORKTREES'],
+  ['MIT', 'LICENSE'],
+  ['YC', 'BACKED'],
+  ['FREE', 'FOREVER'],
+];
+const ticker = document.getElementById('ticker');
+let tickHtml = '';
+// Double for seamless loop
+for (let pass = 0; pass < 2; pass++) {
+  tickItems.forEach(([num, label]) => {
+    tickHtml += `<div class="tick-item"><span class="dot"></span><span class="num">${num}</span>${label}</div>`;
+  });
+}
+ticker.innerHTML = tickHtml;
+
+/* ──────────────────────────────────────────────────
+   LIVE AGENT TERMINAL
+────────────────────────────────────────────────── */
+const termOut = document.getElementById('terminal-output');
+const LOG_LINES = [
+  {delay:0,    tag:'inf', msg:'initializing emdash agent orchestrator...'},
+  {delay:400,  tag:'ok',  msg:'<span class="gr">✓</span> 4 worktrees allocated'},
+  {delay:900,  tag:'run', msg:'<span class="am">→</span> agent[1] claude-code starting <span class="dim">fix-navigation</span>'},
+  {delay:1500, tag:'inf', msg:'<span class="dim">  worktree: origin/fix-navigation · isolation: ON</span>'},
+  {delay:2100, tag:'run', msg:'<span class="am">→</span> agent[2] codex starting <span class="dim">google-login</span>'},
+  {delay:2600, tag:'inf', msg:'<span class="dim">  installing dependencies... node@22.11.0</span>'},
+  {delay:3200, tag:'run', msg:'<span class="am">→</span> agent[3] cursor starting <span class="dim">electron-app</span>'},
+  {delay:3700, tag:'ok',  msg:'<span class="gr">✓</span> agent[1] git diff —stat: <span class="gr">+160 -89</span>'},
+  {delay:4300, tag:'inf', msg:'<span class="dim">  creating PR: "Remove unused imports"</span>'},
+  {delay:4900, tag:'ok',  msg:'<span class="gr">✓</span> PR #49 opened → https://github.com/.../pull/49'},
+  {delay:5500, tag:'run', msg:'<span class="am">→</span> agent[4] gemini starting <span class="dim">fix-redirect</span>'},
+  {delay:6200, tag:'ok',  msg:'<span class="gr">✓</span> agent[3] staged: <span class="gr">+128 -32</span> · ready to review'},
+  {delay:7000, tag:'inf', msg:'<span class="dim">  agent[2] progress: 3 files · OAuth2 flow</span>'},
+  {delay:7800, tag:'ok',  msg:'<span class="gr">✓</span> agent[1] PR merged by reviewer'},
+  {delay:8600, tag:'run', msg:'<span class="am">→</span> agent[5] amp queued for <span class="dim">api-refactor</span>'},
+  {delay:9400, tag:'inf', msg:'<span class="dim">  worktree count: 5 · memory: 2.1 GB</span>'},
+  {delay:10200,tag:'ok',  msg:'<span class="gr">✓</span> agent[2] google-login: PR #50 created'},
+  {delay:11000,tag:'run', msg:'<span class="am">→</span> agent[5] amp running <span class="dim">api-refactor</span>'},
+  {delay:11800,tag:'ok',  msg:'<span class="gr">✓</span> agent[4] fix-redirect: <span class="gr">+24 -8</span> committed'},
+  {delay:12600,tag:'inf', msg:'<span class="dim">  all agents nominal · uptime: 00:12:06</span>'},
+];
+
+const MAX_LINES = 10;
+let loopLines = [...LOG_LINES];
+let displayed = [];
+
+function formatTime() {
+  const now = new Date();
+  return `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+}
+
+function addLine(entry) {
+  const div = document.createElement('div');
+  div.className = 'tl';
+  div.innerHTML = `
+    <span class="tl-time">${formatTime()}</span>
+    <span class="tl-tag ${entry.tag}">${entry.tag.toUpperCase()}</span>
+    <span class="tl-msg">${entry.msg}</span>
+  `;
+  displayed.push(div);
+  termOut.appendChild(div);
+  if (displayed.length > MAX_LINES) {
+    const old = displayed.shift();
+    old.style.transition = 'opacity .3s';
+    old.style.opacity = '0';
+    setTimeout(() => old.remove(), 300);
+  }
+}
+
+function startTerminal() {
+  let baseDelay = 0;
+
+  function runBatch(lines) {
+    lines.forEach(entry => {
+      setTimeout(() => addLine(entry), baseDelay + entry.delay);
+    });
+    // loop
+    const totalDelay = lines[lines.length - 1].delay + 1500;
+    setTimeout(() => {
+      // shift times for next loop
+      const nextLines = LOG_LINES.map((l, i) => ({
+        ...l,
+        delay: i * 800 + Math.random() * 200
+      }));
+      runBatch(nextLines);
+    }, baseDelay + totalDelay);
   }
 
-  // Smooth scroll for nav links
-  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function(e) {
-      const target = document.querySelector(this.getAttribute('href'));
-      if (target) {
-        e.preventDefault();
-        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    });
-  });
+  runBatch(loopLines);
+}
 
-  // Intersection observer for fade-up animations
-  const observer = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.style.opacity = '1';
-        entry.target.style.transform = 'translateY(0)';
-      }
-    });
-  }, { threshold: 0.1 });
+/* ──────────────────────────────────────────────────
+   LIVE WORKTREE TIMER
+────────────────────────────────────────────────── */
+function startWorktreeTimer() {
+  let s1 = 14 * 60 + 22;
+  let s2 = 4 * 60 + 9;
+  const t1 = document.getElementById('wt-t1');
+  const t2 = document.getElementById('wt-t2');
+  const r1 = document.getElementById('wt-r1');
+  const r2 = document.getElementById('wt-r2');
 
-  document.querySelectorAll('.feature-card, .step-card, .testimonial-card, .integration-card').forEach(el => {
-    el.style.opacity = '0';
-    el.style.transform = 'translateY(16px)';
-    el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-    observer.observe(el);
+  setInterval(() => {
+    s1++;
+    s2++;
+    const fmt = s => {
+      const h = String(Math.floor(s/3600)).padStart(2,'0');
+      const m = String(Math.floor((s%3600)/60)).padStart(2,'0');
+      const sc = String(s%60).padStart(2,'0');
+      return `${h}:${m}:${sc}`;
+    };
+    if (t1) t1.innerHTML = `&nbsp;&nbsp;&nbsp;&nbsp;elapsed: ${fmt(s1)}`;
+    if (t2) t2.innerHTML = `&nbsp;&nbsp;&nbsp;&nbsp;gemini · elapsed: ${fmt(s2)}`;
+
+    // Blink running indicators
+    if (r1 && r2) {
+      const blink = Math.floor(Date.now()/800) % 2 === 0;
+      r1.style.opacity = blink ? '1' : '0.4';
+      r2.style.opacity = blink ? '0.4' : '1';
+    }
+  }, 1000);
+}
+
+/* ──────────────────────────────────────────────────
+   SMOOTH SCROLL
+────────────────────────────────────────────────── */
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    const target = document.querySelector(a.getAttribute('href'));
+    if (target) { e.preventDefault(); target.scrollIntoView({behavior:'smooth',block:'start'}); }
   });
+});
+
+/* ──────────────────────────────────────────────────
+   REVEAL ON SCROLL
+────────────────────────────────────────────────── */
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); });
+}, {threshold: 0.12});
+
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 </script>
 </body>
 </html>
