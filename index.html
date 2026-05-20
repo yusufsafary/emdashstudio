@@ -520,8 +520,8 @@ body{animation:flicker 5s infinite;}
 ────────────────────────────────────────────────── */
 .showcase-grid{
   display:grid;grid-template-columns:1fr 1fr;
-  gap:52px;align-items:center;
-  margin-top:52px;
+  gap:40px;align-items:center;
+  margin-top:40px;
 }
 .showcase-list{list-style:none;display:flex;flex-direction:column;gap:10px;margin-top:20px;}
 .showcase-list li{
@@ -781,7 +781,7 @@ footer{
   display:flex;gap:1px;
   background:var(--border);
   border:1px solid var(--border);border-radius:6px;overflow:hidden;
-  margin-top:60px;
+  margin-top:0;
 }
 .stat-item{
   flex:1;background:var(--bg2);padding:24px;text-align:center;
@@ -835,20 +835,32 @@ footer{
   .steps-grid{grid-template-columns:1fr 1fr;}
   .testi-grid{grid-template-columns:1fr;}
   .foot-grid{grid-template-columns:1fr 1fr;}
-  .stat-row{flex-direction:column;}
-  .stat-item{border-right:none;border-bottom:1px solid var(--border);}
-  .stat-item:last-child{border-bottom:none;}
+  .stat-row{flex-direction:row;flex-wrap:wrap;}
+  .stat-item{flex:1 1 calc(50% - 1px);border-right:1px solid var(--border);border-bottom:1px solid var(--border);}
+  .stat-item:nth-child(2n){border-right:none;}
+  .stat-item:nth-last-child(-n+2){border-bottom:none;}
   .sb-links{display:none;}
+  .sb-sig{display:none;}
   .sb-hamburger{display:flex;}
+  #hero{padding:72px 0 40px;}
+  .sec{padding:60px 0;}
+  .feat-grid{margin-top:32px;}
+  .steps-grid{margin-top:32px;}
 }
 @media(max-width:560px){
   .feat-grid{grid-template-columns:1fr;}
   .steps-grid{grid-template-columns:1fr;}
   .foot-grid{grid-template-columns:1fr;}
   .int-grid{grid-template-columns:1fr 1fr;}
-  #hero{padding:80px 0 40px;}
-  .sec{padding:60px 0;}
-  .hero-title{font-size:2rem;}
+  .stat-row{flex-direction:column;flex-wrap:nowrap;}
+  .stat-item{flex:none;width:100%;border-right:none;border-bottom:1px solid var(--border);}
+  .stat-item:last-child{border-bottom:none;}
+  #hero{padding:64px 0 32px;}
+  .sec{padding:52px 0;}
+  .hero-title{font-size:clamp(1.8rem,8vw,2.6rem);}
+  .hero-badge{font-size:10px;padding:3px 10px;}
+  .hero-sub{font-size:13px;}
+  .sb-dl{padding:5px 10px;font-size:11px;letter-spacing:.06em;}
 }
 
 /* ──────────────────────────────────────────────────
@@ -978,7 +990,7 @@ footer{
 </div>
 
 <!-- ── STATS ── -->
-<section class="sec-alt" style="padding:52px 0;">
+<section class="sec-alt" style="padding:32px 0;">
   <div class="container">
     <div class="stat-row reveal">
       <div class="stat-item"><div class="stat-num">840K+</div><div class="stat-lbl">DOWNLOADS</div></div>
